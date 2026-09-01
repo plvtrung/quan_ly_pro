@@ -162,7 +162,7 @@
 
     <div class="app-header">
         <div class="app-title" id="main-header-title">⏱️ <span>Quản Lý Pro</span></div>
-        <span class="version-tag">v2.0 Fixed Pro</span>
+        <span class="version-tag">v2.0 Full Pro</span>
     </div>
 
     <div class="app-switcher">
@@ -491,7 +491,6 @@
     // CORE UTILS & SECURITY HELPERS
     // =========================================================================
     
-    // Safety XSS Escape
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -502,7 +501,6 @@
             .replace(/'/g, "&#039;");
     }
 
-    // Safety CSV Formula Injection Fix
     function escapeCsvCell(cell) {
         if (cell === null || cell === undefined) return '""';
         let str = String(cell);
@@ -512,7 +510,6 @@
         return `"${str.replace(/"/g, '""')}"`;
     }
 
-    // UUID Generator for Collision-free Primary Key
     function generateUUID() {
         if (typeof crypto !== 'undefined' && crypto.randomUUID) {
             return crypto.randomUUID();
@@ -520,1371 +517,1169 @@
         return 'id-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     }
 
-    // Fix Múi giờ Local "YYYY-MM-DD" (Avoid UTC Shift)
     function getTodayStr() {
         const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
+        return `${year}-${month}-${day}`;
     }
 
-    // Thuật toán Tính Tuần ISO-8601 Chuẩn
     function getCurrentWeekStr() {
         const d = new Date();
-        d.setHours(0, 0, 0, 0);
-        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-        const yearStart = new Date(d.getFullYear(), 0, 1);
-        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+        const date = d.getDate();
+        const day = d.getDay() || 7;
+        d.setDate(date + 4 - day);
+        const year = d.getFullYear();
+        const firstDayOfYear = new Date(year, 0, 1);
+        const week = Math.ceil((((d - firstDayOfYear) / 86400000) + 1) / 7);
+        return `${year}-W${String(week).padStart(2, '0')}`;
     }
 
-    function getDateRangeOfISOWeek(weekStr) {
-        if (!weekStr) return null;
-        const [yearStr, weekNumStr] = weekStr.split('-W');
-        const year = parseInt(yearStr, 10);
-        const week = parseInt(weekNumStr, 10);
-
-        const simple = new Date(year, 0, 1 + (week - 1) * 7);
-        const dayOfWeek = simple.getDay();
-        const ISOweekStart = new Date(simple);
-        if (dayOfWeek <= 4) {
-            ISOweekStart.setDate(simple.getDate() - (simple.getDay() || 7) + 1);
-        } else {
-            ISOweekStart.setDate(simple.getDate() + (8 - (simple.getDay() || 7)));
-        }
-        const ISOweekEnd = new Date(ISOweekStart);
-        ISOweekEnd.setDate(ISOweekStart.getDate() + 6);
-
-        const formatDate = (dateObj) => {
-            const y = dateObj.getFullYear();
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        };
-
-        return {
-            start: formatDate(ISOweekStart),
-            end: formatDate(ISOweekEnd)
-        };
+    function getCurrentMonthStr() {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        return `${year}-${month}`;
     }
 
-    function setNow(inputId) {
-        const now = new Date();
-        const hrs = String(now.getHours()).padStart(2, '0');
-        const mins = String(now.getMinutes()).padStart(2, '0');
-        document.getElementById(inputId).value = `${hrs}:${mins}`;
-    }
-
-    function formatMoney(num) {
-        return new Intl.NumberFormat('vi-VN').format(Math.round(num || 0)) + 'đ';
+    function formatVND(num) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num || 0);
     }
 
     function showToast(msg) {
         const t = document.getElementById('toast');
-        t.textContent = msg;
+        t.innerText = msg;
         t.classList.add('show');
-        clearTimeout(t._timer);
-        t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+        setTimeout(() => t.classList.remove('show'), 3000);
     }
 
-    function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('active');
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function setNow(inputId) {
+        const d = new Date();
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        document.getElementById(inputId).value = `${hh}:${mm}`;
     }
-
-    // Global Modal Overlay Auto Close
-    window.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-overlay')) {
-            e.target.classList.remove('active');
-        }
-    });
-
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
-        }
-    });
 
     // =========================================================================
-    // CONFIG & STATE MANAGEMENT
+    // STATE & INITIALIZATION
     // =========================================================================
-    let currentModule = 'attendance';
 
-    function getAppConfig() {
-        try {
-            const cfg = localStorage.getItem('app_config_v1');
-            if (cfg) return JSON.parse(cfg);
-        } catch(e){}
-        return {
-            stdIn: '08:00',
-            lunchStart: '11:30',
-            lunchEnd: '13:00',
-            scriptUrl: ''
-        };
-    }
-
-    function setAppConfig(cfg) {
-        localStorage.setItem('app_config_v1', JSON.stringify(cfg));
-    }
-
-    function switchAppModule(mod) {
-        currentModule = mod;
-        const attBtn = document.getElementById('app-switch-attendance');
-        const expBtn = document.getElementById('app-switch-expense');
-        const attSec = document.getElementById('module-attendance');
-        const expSec = document.getElementById('module-expense');
-        const floatBtn = document.getElementById('float-add');
-
-        if (mod === 'attendance') {
-            attBtn.classList.add('active');
-            expBtn.classList.remove('active');
-            attSec.classList.add('active');
-            expSec.classList.remove('active');
-            floatBtn.innerHTML = '⚡ Chấm công nhanh';
-        } else {
-            expBtn.classList.add('active');
-            attBtn.classList.remove('active');
-            expSec.classList.add('active');
-            attSec.classList.remove('active');
-            floatBtn.innerHTML = '⚡ Thêm thu chi';
-        }
-    }
-
-
-    // =========================================================================
-    // MODULE 1: CHẤM CÔNG LOGIC
-    // =========================================================================
-    const ATT_DEFAULT_EMPLOYEES = [
-        { code: 'NV01', name: 'Nguyễn Văn A', dept: 'Kinh doanh' },
-        { code: 'NV02', name: 'Trần Thị B', dept: 'Kế toán' },
-        { code: 'NV03', name: 'Lê Văn C', dept: 'Kỹ thuật' },
-        { code: 'NV04', name: 'Phạm Thị D', dept: 'Nhân sự' }
+    const DEFAULT_EMPLOYEES = [
+        { id: 'NV01', code: 'NV01', name: 'Nguyễn Văn A', dept: 'Kỹ Thuật' },
+        { id: 'NV02', code: 'NV02', name: 'Trần Thị B', dept: 'Kế Toán' }
     ];
 
-    let attCurrentReportMode = 'week';
+    const DEFAULT_CATEGORIES = [
+        { id: 'cat-1', name: 'Ăn uống', type: 'expense' },
+        { id: 'cat-2', name: 'Đi lại / Xăng xe', type: 'expense' },
+        { id: 'cat-3', name: 'Mua sắm', type: 'expense' },
+        { id: 'cat-4', name: 'Hóa đơn & Tiện ích', type: 'expense' },
+        { id: 'cat-5', name: 'Lương', type: 'income' },
+        { id: 'cat-6', name: 'Thưởng / Khác', type: 'income' }
+    ];
 
-    function getEmployees() {
-        try {
-            const data = localStorage.getItem('employees_v3');
-            if (data) return JSON.parse(data);
-        } catch(e){}
-        return ATT_DEFAULT_EMPLOYEES;
+    const DEFAULT_CONFIG = {
+        standardIn: '08:00',
+        lunchStart: '12:00',
+        lunchEnd: '13:00',
+        scriptUrl: ''
+    };
+
+    let state = {
+        currentModule: 'attendance',
+        attReportMode: 'week',
+        expReportMode: 'week',
+        currentExpType: 'expense',
+        employees: JSON.parse(localStorage.getItem('pro_employees')) || DEFAULT_EMPLOYEES,
+        categories: JSON.parse(localStorage.getItem('pro_categories')) || DEFAULT_CATEGORIES,
+        attRecords: JSON.parse(localStorage.getItem('pro_att_records')) || [],
+        expRecords: JSON.parse(localStorage.getItem('pro_exp_records')) || [],
+        config: JSON.parse(localStorage.getItem('pro_config')) || DEFAULT_CONFIG
+    };
+
+    function saveState() {
+        localStorage.setItem('pro_employees', JSON.stringify(state.employees));
+        localStorage.setItem('pro_categories', JSON.stringify(state.categories));
+        localStorage.setItem('pro_att_records', JSON.stringify(state.attRecords));
+        localStorage.setItem('pro_exp_records', JSON.stringify(state.expRecords));
+        localStorage.setItem('pro_config', JSON.stringify(state.config));
     }
-    function setEmployees(data) { localStorage.setItem('employees_v3', JSON.stringify(data)); }
 
-    function getAttRecords() {
-        try {
-            const data = localStorage.getItem('attendance_v3');
-            if (data) return JSON.parse(data);
-        } catch(e){}
-        return [];
-    }
-    function setAttRecords(data) { localStorage.setItem('attendance_v3', JSON.stringify(data)); }
+    // =========================================================================
+    // MODULE & TAB SWITCHING
+    // =========================================================================
 
-    async function saveToGoogleSheet(record) {
-        const config = getAppConfig();
-        if (!config.scriptUrl || !config.scriptUrl.startsWith('http')) return;
-        try {
-            await fetch(config.scriptUrl, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: "saveAttendance",
-                    records: [record]
-                })
-            });
-            showToast('Đã ghi dữ liệu & gửi sync!');
-        } catch (error) {
-            console.error("Lỗi gửi dữ liệu Google Sheet:", error);
-            showToast('Lưu máy local (Sync Sheets thất bại)');
+    function switchAppModule(mod) {
+        state.currentModule = mod;
+        document.querySelectorAll('.app-switcher-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+
+        if (mod === 'attendance') {
+            document.getElementById('app-switch-attendance').classList.add('active');
+            document.getElementById('module-attendance').classList.add('active');
+            document.getElementById('main-header-title').innerHTML = '⏱️ <span>Quản Lý Công</span>';
+        } else {
+            document.getElementById('app-switch-expense').classList.add('active');
+            document.getElementById('module-expense').classList.add('active');
+            document.getElementById('main-header-title').innerHTML = '💰 <span>Quản Lý Chi Tiêu</span>';
         }
     }
 
-    function calculateStatus(checkin, checkout) {
-        const config = getAppConfig();
-        const stdIn = config.stdIn || '08:00';
+    function initTabs() {
+        document.querySelectorAll('.tab-bar').forEach(bar => {
+            bar.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab-btn')) {
+                    const targetTabId = e.target.getAttribute('data-tab');
+                    const parentSection = bar.closest('.app-section');
+                    
+                    parentSection.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    parentSection.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-        if (!checkin && !checkout) return { label: 'Vắng', badge: 'badge-kp', hours: 0 };
-        if (!checkin || !checkout) return { label: 'Thiếu giờ', badge: 'badge-other', hours: 0 };
-        
-        const [h1, m1] = checkin.split(':').map(Number);
-        const [h2, m2] = checkout.split(':').map(Number);
-        let inMins = h1 * 60 + m1;
-        let outMins = h2 * 60 + m2;
-        if (outMins < inMins) outMins += 24 * 60; // Ca qua đêm
-
-        let diffMins = outMins - inMins;
-
-        // Trừ giờ nghỉ trưa theo khoảng thực tế
-        if (config.lunchStart && config.lunchEnd) {
-            const [lh1, lm1] = config.lunchStart.split(':').map(Number);
-            const [lh2, lm2] = config.lunchEnd.split(':').map(Number);
-            const lStart = lh1 * 60 + lm1;
-            const lEnd = lh2 * 60 + lm2;
-
-            if (lEnd > lStart) {
-                const overlapStart = Math.max(inMins, lStart);
-                const overlapEnd = Math.min(outMins, lEnd);
-                if (overlapEnd > overlapStart) {
-                    diffMins -= (overlapEnd - overlapStart);
+                    e.target.classList.add('active');
+                    document.getElementById(targetTabId).classList.add('active');
                 }
+            });
+        });
+    }
+
+    // =========================================================================
+    // MODULE 1: CHẤM CÔNG (LOGIC & CALCULATIONS)
+    // =========================================================================
+
+    function calculateShift(checkIn, checkOut, dateStr) {
+        if (!checkIn) return { hours: 0, status: 'Nghỉ', isLate: false, lateMins: 0 };
+
+        const stdin = state.config.standardIn || '08:00';
+        const [inH, inM] = checkIn.split(':').map(Number);
+        const [stdH, stdM] = stdin.split(':').map(Number);
+        
+        let lateMins = (inH * 60 + inM) - (stdH * 60 + stdM);
+        let isLate = lateMins > 0;
+        if (!isLate) lateMins = 0;
+
+        if (!checkOut) {
+            return { hours: 0, status: isLate ? `Đi muộn (${lateMins}p)` : 'Thiếu giờ ra', isLate, lateMins };
+        }
+
+        const [outH, outM] = checkOut.split(':').map(Number);
+        let startMins = inH * 60 + inM;
+        let endMins = outH * 60 + outM;
+
+        if (endMins < startMins) endMins += 24 * 60; // Ca qua đêm
+
+        let totalMins = endMins - startMins;
+
+        // Trừ giờ nghỉ trưa
+        if (state.config.lunchStart && state.config.lunchEnd) {
+            const [lSH, lSM] = state.config.lunchStart.split(':').map(Number);
+            const [lEH, lEM] = state.config.lunchEnd.split(':').map(Number);
+            const lunchStartMins = lSH * 60 + lSM;
+            const lunchEndMins = lEH * 60 + lEM;
+
+            const overlapStart = Math.max(startMins, lunchStartMins);
+            const overlapEnd = Math.min(endMins, lunchEndMins);
+
+            if (overlapEnd > overlapStart) {
+                totalMins -= (overlapEnd - overlapStart);
             }
         }
 
-        let netHours = Math.max(0, diffMins / 60);
+        const hours = Math.max(0, Number((totalMins / 60).toFixed(2)));
+        let status = 'Đủ công';
+        if (isLate) status = `Đi muộn (${lateMins}p)`;
 
-        const [stdH, stdM] = stdIn.split(':').map(Number);
-        const isLate = inMins > (stdH * 60 + stdM);
-
-        if (netHours >= 8) return { label: isLate ? 'Đi muộn' : 'Đủ công', badge: isLate ? 'badge-dm' : 'badge-x', hours: netHours };
-        if (netHours >= 4) return { label: 'Nửa công', badge: 'badge-n', hours: netHours };
-        return { label: 'Khác', badge: 'badge-other', hours: netHours };
+        return { hours, status, isLate, lateMins };
     }
 
-    function switchAttReportMode(mode) {
-        attCurrentReportMode = mode;
-        const weekBtn = document.getElementById('att-mode-week-btn');
-        const monthBtn = document.getElementById('att-mode-month-btn');
-        const weekFilter = document.getElementById('att-group-filter-week');
-        const monthFilter = document.getElementById('att-group-filter-month');
-
-        if (mode === 'week') {
-            weekBtn.classList.add('active');
-            monthBtn.classList.remove('active');
-            weekFilter.style.display = 'block';
-            monthFilter.style.display = 'none';
-        } else {
-            monthBtn.classList.add('active');
-            weekBtn.classList.remove('active');
-            monthFilter.style.display = 'block';
-            weekFilter.style.display = 'none';
-        }
-        generateAttReport();
-    }
-
-    function renderEmployeeSelect() {
+    function renderEmployeeDropdown() {
         const select = document.getElementById('att-input-employee');
-        const employees = getEmployees();
-        select.innerHTML = employees.map(e => `<option value="${escapeHtml(e.code)}">${escapeHtml(e.code)} - ${escapeHtml(e.name)}</option>`).join('');
+        select.innerHTML = state.employees.map(e => 
+            `<option value="${escapeHtml(e.code)}">${escapeHtml(e.name)} (${escapeHtml(e.code)})</option>`
+        ).join('');
     }
 
-    function renderEmployeeList(filterText = '') {
-        const container = document.getElementById('att-employee-list');
-        let employees = getEmployees();
-        
-        if (filterText) {
-            employees = employees.filter(e => 
-                e.name.toLowerCase().includes(filterText.toLowerCase()) || 
-                e.code.toLowerCase().includes(filterText.toLowerCase())
-            );
-        }
+    function renderAttTodayList() {
+        const today = document.getElementById('att-input-date').value || getTodayStr();
+        const records = state.attRecords.filter(r => r.date === today);
+        const container = document.getElementById('att-today-list');
 
-        if (!employees.length) {
-            container.innerHTML = '<div class="empty-state">Không tìm thấy nhân viên phù hợp</div>';
+        if (records.length === 0) {
+            container.innerHTML = `<div class="empty-state">Chưa có dữ liệu chấm công cho ngày ${today}</div>`;
             return;
         }
 
-        container.innerHTML = employees.map((emp, idx) => `
+        container.innerHTML = records.map(r => {
+            const emp = state.employees.find(e => e.code === r.empCode) || { name: r.empCode, dept: '' };
+            const calc = calculateShift(r.checkIn, r.checkOut, r.date);
+            let badgeClass = 'badge-x';
+            if (calc.isLate) badgeClass = 'badge-n';
+            if (!r.checkOut) badgeClass = 'badge-dm';
+
+            return `
+                <div class="list-item">
+                    <div>
+                        <div class="emp-name">${escapeHtml(emp.name)}</div>
+                        <div class="emp-sub">Vào: ${r.checkIn || '--:--'} | Ra: ${r.checkOut || '--:--'} | ${escapeHtml(r.note || '')}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="badge ${badgeClass}">${calc.status} (${calc.hours}h)</span>
+                        <div style="margin-top:4px;">
+                            <button type="button" class="btn btn-sm btn-outline" onclick="editAttRecord('${r.id}')">✏️</button>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteAttRecord('${r.id}')">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function saveAttRecord() {
+        const id = document.getElementById('att-input-edit-id').value;
+        const date = document.getElementById('att-input-date').value;
+        const empCode = document.getElementById('att-input-employee').value;
+        const checkIn = document.getElementById('att-input-checkin').value;
+        const checkOut = document.getElementById('att-input-checkout').value;
+        const note = document.getElementById('att-input-note').value.trim();
+
+        if (!date || !empCode) {
+            showToast('⚠️ Vui lòng điền đủ Ngày và Chọn nhân viên');
+            return;
+        }
+
+        if (id) {
+            const idx = state.attRecords.findIndex(r => r.id === id);
+            if (idx !== -1) {
+                state.attRecords[idx] = { id, date, empCode, checkIn, checkOut, note };
+                showToast('✅ Đã cập nhật ca làm');
+            }
+        } else {
+            const newRec = { id: generateUUID(), date, empCode, checkIn, checkOut, note };
+            state.attRecords.push(newRec);
+            showToast('✅ Đã ghi nhận ca làm');
+        }
+
+        saveState();
+        resetAttForm();
+        renderAttTodayList();
+        syncToGoogleSheets();
+    }
+
+    function resetAttForm() {
+        document.getElementById('att-input-edit-id').value = '';
+        document.getElementById('att-form-title').innerText = '📝 Ghi nhận ca làm';
+        document.getElementById('att-input-checkin').value = '';
+        document.getElementById('att-input-checkout').value = '';
+        document.getElementById('att-input-note').value = '';
+        document.getElementById('att-btn-cancel-edit').style.display = 'none';
+        document.getElementById('att-btn-save').innerText = 'Lưu dữ liệu ca làm';
+    }
+
+    function editAttRecord(id) {
+        const r = state.attRecords.find(x => x.id === id);
+        if (!r) return;
+        document.getElementById('att-input-edit-id').value = r.id;
+        document.getElementById('att-input-date').value = r.date;
+        document.getElementById('att-input-employee').value = r.empCode;
+        document.getElementById('att-input-checkin').value = r.checkIn || '';
+        document.getElementById('att-input-checkout').value = r.checkOut || '';
+        document.getElementById('att-input-note').value = r.note || '';
+        document.getElementById('att-form-title').innerText = '✏️ Chỉnh sửa ca làm';
+        document.getElementById('att-btn-cancel-edit').style.display = 'block';
+        document.getElementById('att-btn-save').innerText = 'Cập nhật ca làm';
+    }
+
+    function deleteAttRecord(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa bản ghi chấm công này?')) return;
+        state.attRecords = state.attRecords.filter(r => r.id !== id);
+        saveState();
+        renderAttTodayList();
+        showToast('🗑️ Đã xóa bản ghi');
+    }
+
+    function switchAttReportMode(mode) {
+        state.attReportMode = mode;
+        document.getElementById('att-mode-week-btn').classList.toggle('active', mode === 'week');
+        document.getElementById('att-mode-month-btn').classList.toggle('active', mode === 'month');
+        document.getElementById('att-group-filter-week').style.display = mode === 'week' ? 'block' : 'none';
+        document.getElementById('att-group-filter-month').style.display = mode === 'month' ? 'block' : 'none';
+    }
+
+    function generateAttReport() {
+        let filtered = [];
+        let infoText = '';
+
+        if (state.attReportMode === 'week') {
+            const val = document.getElementById('att-report-week').value;
+            if (!val) { showToast('⚠️ Chọn tuần để báo cáo'); return; }
+            infoText = `Báo cáo theo Tuần: ${val}`;
+            // Match ISO week
+            filtered = state.attRecords.filter(r => {
+                const rDate = new Date(r.date);
+                if (isNaN(rDate)) return false;
+                const d = new Date(rDate.getTime());
+                d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+                const year = d.getFullYear();
+                const firstDay = new Date(year, 0, 1);
+                const week = Math.ceil((((d - firstDay) / 86400000) + 1) / 7);
+                const wStr = `${year}-W${String(week).padStart(2, '0')}`;
+                return wStr === val;
+            });
+        } else {
+            const val = document.getElementById('att-report-month').value;
+            if (!val) { showToast('⚠️ Chọn tháng để báo cáo'); return; }
+            infoText = `Báo cáo theo Tháng: ${val}`;
+            filtered = state.attRecords.filter(r => r.date && r.date.startsWith(val));
+        }
+
+        document.getElementById('att-report-range-info').innerText = `${infoText} (${filtered.length} lượt công)`;
+
+        // Aggr
+        let totalHours = 0;
+        let lateCount = 0;
+        const empAgg = {};
+
+        state.employees.forEach(e => {
+            empAgg[e.code] = { name: e.name, hours: 0, lates: 0, shifts: 0 };
+        });
+
+        filtered.forEach(r => {
+            const calc = calculateShift(r.checkIn, r.checkOut, r.date);
+            totalHours += calc.hours;
+            if (calc.isLate) lateCount++;
+
+            if (!empAgg[r.empCode]) {
+                empAgg[r.empCode] = { name: r.empCode, hours: 0, lates: 0, shifts: 0 };
+            }
+            empAgg[r.empCode].hours += calc.hours;
+            if (calc.isLate) empAgg[r.empCode].lates++;
+            empAgg[r.empCode].shifts++;
+        });
+
+        document.getElementById('att-report-summary').innerHTML = `
+            <div class="summary-item">
+                <div class="number balance">${filtered.length}</div>
+                <div class="label">Tổng Ca</div>
+            </div>
+            <div class="summary-item">
+                <div class="number income">${totalHours.toFixed(1)}h</div>
+                <div class="label">Tổng Giờ Làm</div>
+            </div>
+            <div class="summary-item">
+                <div class="number expense">${lateCount}</div>
+                <div class="label">Lượt Đi Muộn</div>
+            </div>
+        `;
+
+        document.getElementById('att-report-detail').innerHTML = `
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã NV</th>
+                            <th>Tên NV</th>
+                            <th>Số ca</th>
+                            <th>Tổng giờ</th>
+                            <th>Đi muộn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.keys(empAgg).map(code => {
+                            const e = empAgg[code];
+                            return `
+                                <tr>
+                                    <td><b>${escapeHtml(code)}</b></td>
+                                    <td>${escapeHtml(e.name)}</td>
+                                    <td>${e.shifts}</td>
+                                    <td><b>${e.hours.toFixed(1)}h</b></td>
+                                    <td>${e.lates > 0 ? `<span class="badge badge-n">${e.lates}</span>` : '0'}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    function exportAttCSV() {
+        if (state.attRecords.length === 0) {
+            showToast('⚠️ Không có dữ liệu để xuất!');
+            return;
+        }
+
+        let csv = '\uFEFF'; // UTF-8 BOM
+        csv += 'ID,Ngay,MaNV,TenNV,GioVao,GioRa,SoGio,TrangThai,GhiChu\n';
+
+        state.attRecords.forEach(r => {
+            const emp = state.employees.find(e => e.code === r.empCode) || { name: r.empCode };
+            const calc = calculateShift(r.checkIn, r.checkOut, r.date);
+            const row = [
+                escapeCsvCell(r.id),
+                escapeCsvCell(r.date),
+                escapeCsvCell(r.empCode),
+                escapeCsvCell(emp.name),
+                escapeCsvCell(r.checkIn || ''),
+                escapeCsvCell(r.checkOut || ''),
+                escapeCsvCell(calc.hours),
+                escapeCsvCell(calc.status),
+                escapeCsvCell(r.note || '')
+            ];
+            csv += row.join(',') + '\n';
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Bao_Cao_Cham_Cong_${getTodayStr()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 Đã xuất file CSV thành công');
+    }
+
+    function renderEmployeeList() {
+        const search = (document.getElementById('att-search-employee').value || '').toLowerCase();
+        const filtered = state.employees.filter(e => 
+            e.name.toLowerCase().includes(search) || e.code.toLowerCase().includes(search)
+        );
+
+        const container = document.getElementById('att-employee-list');
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-state">Không tìm thấy nhân viên nào</div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map((e, idx) => `
             <div class="list-item">
                 <div>
-                    <div class="emp-name">${escapeHtml(emp.name)}</div>
-                    <div class="emp-sub">Mã: ${escapeHtml(emp.code)} ${emp.dept ? '• ' + escapeHtml(emp.dept) : ''}</div>
+                    <div class="emp-name">${escapeHtml(e.name)} (${escapeHtml(e.code)})</div>
+                    <div class="emp-sub">Phòng ban: ${escapeHtml(e.dept || 'Chưa xếp')}</div>
                 </div>
-                <div style="display:flex; gap:6px;">
-                    <button type="button" class="btn btn-sm btn-outline" onclick="editEmployee(${idx})">Sửa</button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteEmployee(${idx})">Xoá</button>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="openEditEmployeeModal(${idx})">✏️</button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteEmployee(${idx})">🗑️</button>
                 </div>
             </div>
         `).join('');
     }
 
-    function renderTodayAttList() {
-        const container = document.getElementById('att-today-list');
-        const selectedDate = document.getElementById('att-input-date').value || getTodayStr();
-        const records = getAttRecords().filter(r => r.date === selectedDate);
-        const employees = getEmployees();
+    function openEditEmployeeModal(index = null) {
+        if (index !== null) {
+            const e = state.employees[index];
+            document.getElementById('att-modal-employee-title').innerText = 'Sửa thông tin nhân viên';
+            document.getElementById('att-modal-emp-code').value = e.code;
+            document.getElementById('att-modal-emp-code').disabled = true;
+            document.getElementById('att-modal-emp-name').value = e.name;
+            document.getElementById('att-modal-emp-dept').value = e.dept || '';
+            document.getElementById('att-modal-edit-index').value = index;
+        } else {
+            document.getElementById('att-modal-employee-title').innerText = 'Thêm nhân viên mới';
+            document.getElementById('att-modal-emp-code').value = '';
+            document.getElementById('att-modal-emp-code').disabled = false;
+            document.getElementById('att-modal-emp-name').value = '';
+            document.getElementById('att-modal-emp-dept').value = '';
+            document.getElementById('att-modal-edit-index').value = '';
+        }
+        openModal('att-employee-modal');
+    }
 
-        if (!records.length) {
-            container.innerHTML = '<div class="empty-state">Chưa có dữ liệu chấm công cho ngày này</div>';
+    function saveEmployeeModal() {
+        const code = document.getElementById('att-modal-emp-code').value.trim();
+        const name = document.getElementById('att-modal-emp-name').value.trim();
+        const dept = document.getElementById('att-modal-emp-dept').value.trim();
+        const idxStr = document.getElementById('att-modal-edit-index').value;
+
+        if (!code || !name) {
+            showToast('⚠️ Vui lòng nhập Mã và Tên NV');
             return;
         }
 
-        let html = `<div class="table-wrap"><table><thead><tr><th>Nhân viên</th><th>Vào</th><th>Ra</th><th>Công</th><th>Thao tác</th></tr></thead><tbody>`;
-        records.forEach(rec => {
-            const emp = employees.find(e => e.code === rec.employee);
-            const empDisplayName = emp ? emp.name : (rec.employeeName || rec.employee);
-            const status = calculateStatus(rec.checkin, rec.checkout);
-
-            html += `
-                <tr>
-                    <td><strong>${escapeHtml(empDisplayName)}</strong></td>
-                    <td>${escapeHtml(rec.checkin) || '--:--'}</td>
-                    <td>${escapeHtml(rec.checkout) || '--:--'}</td>
-                    <td><span class="badge ${status.badge}">${status.label}</span></td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-outline" onclick="startEditAttRecord('${rec.id}')">✏️</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteAttRecord('${rec.id}')">✕</button>
-                    </td>
-                </tr>
-            `;
-        });
-        html += '</tbody></table></div>';
-        container.innerHTML = html;
-    }
-
-    function generateAttReport() {
-        const allRecords = getAttRecords();
-        const employees = getEmployees();
-        let filteredRecords = [];
-        let infoText = "";
-        let timeLabel = "";
-
-        if (attCurrentReportMode === 'week') {
-            const weekStr = document.getElementById('att-report-week').value;
-            if (!weekStr) return showToast('Vui lòng chọn tuần báo cáo');
-            const range = getDateRangeOfISOWeek(weekStr);
-            if (!range) return;
-
-            filteredRecords = allRecords.filter(r => r.date >= range.start && r.date <= range.end);
-            infoText = `Từ ${range.start.split('-').reverse().join('/')} đến ${range.end.split('-').reverse().join('/')}`;
-            timeLabel = weekStr;
+        if (idxStr !== '') {
+            const idx = parseInt(idxStr);
+            state.employees[idx] = { ...state.employees[idx], name, dept };
+            showToast('✅ Đã cập nhật nhân viên');
         } else {
-            const monthStr = document.getElementById('att-report-month').value;
-            if (!monthStr) return showToast('Vui lòng chọn tháng báo cáo');
-            const [year, month] = monthStr.split('-').map(Number);
-
-            filteredRecords = allRecords.filter(r => {
-                if (!r.date) return false;
-                const d = new Date(r.date + 'T00:00:00');
-                return d.getFullYear() === year && (d.getMonth() + 1) === month;
-            });
-            infoText = `Tháng ${month}/${year}`;
-            timeLabel = monthStr;
+            if (state.employees.some(e => e.code === code)) {
+                showToast('⚠️ Mã nhân viên đã tồn tại!');
+                return;
+            }
+            state.employees.push({ id: generateUUID(), code, name, dept });
+            showToast('✅ Đã thêm nhân viên mới');
         }
 
-        document.getElementById('att-report-range-info').textContent = infoText;
-
-        const summary = {};
-        // Tạo key cho NV còn tồn tại
-        employees.forEach(e => summary[e.code] = { name: e.name, days: 0, hours: 0, late: 0, missing: 0 });
-
-        filteredRecords.forEach(r => {
-            if (!summary[r.employee]) {
-                summary[r.employee] = { name: r.employeeName || r.employee, days: 0, hours: 0, late: 0, missing: 0 };
-            }
-            const stat = calculateStatus(r.checkin, r.checkout);
-            if (stat.hours) summary[r.employee].hours += stat.hours;
-            
-            if (stat.label === 'Đủ công') summary[r.employee].days += 1;
-            else if (stat.label === 'Nửa công') summary[r.employee].days += 0.5;
-            else if (stat.label === 'Đi muộn') { summary[r.employee].days += 1; summary[r.employee].late += 1; }
-            else if (stat.label === 'Thiếu giờ' || stat.label === 'Vắng') { summary[r.employee].missing += 1; }
-        });
-
-        let totalDays = 0, totalHours = 0, totalLate = 0;
-        Object.values(summary).forEach(s => {
-            totalDays += s.days;
-            totalHours += s.hours;
-            totalLate += s.late;
-        });
-
-        document.getElementById('att-report-summary').innerHTML = `
-            <div class="summary-item"><div class="number">${totalDays.toFixed(1)}</div><div class="label">Tổng công</div></div>
-            <div class="summary-item"><div class="number">${totalHours.toFixed(1)}h</div><div class="label">Tổng giờ làm</div></div>
-            <div class="summary-item"><div class="number">${totalLate}</div><div class="label">Lượt đi muộn</div></div>
-        `;
-
-        let detailHtml = `<div class="table-wrap"><table><thead><tr><th>Nhân viên</th><th>Công</th><th>Giờ làm</th><th>Muộn</th></tr></thead><tbody>`;
-        Object.keys(summary).forEach(empCode => {
-            const s = summary[empCode];
-            detailHtml += `
-                <tr>
-                    <td><strong>${escapeHtml(s.name)}</strong><br><small style="color:var(--text-sub);">${escapeHtml(empCode)}</small></td>
-                    <td>${s.days.toFixed(1)}</td>
-                    <td>${s.hours.toFixed(1)}h</td>
-                    <td>${s.late}</td>
-                </tr>
-            `;
-        });
-        detailHtml += '</tbody></table></div>';
-        document.getElementById('att-report-detail').innerHTML = detailHtml;
-
-        window._currentAttReport = {
-            mode: attCurrentReportMode,
-            timeLabel: timeLabel,
-            infoText: infoText,
-            summary: summary,
-            employees: employees
-        };
-    }
-
-    function editEmployee(index) {
-        const emp = getEmployees()[index];
-        document.getElementById('att-modal-edit-index').value = index;
-        document.getElementById('att-modal-employee-title').textContent = 'Chỉnh sửa nhân viên';
-        document.getElementById('att-modal-emp-code').value = emp.code;
-        document.getElementById('att-modal-emp-name').value = emp.name;
-        document.getElementById('att-modal-emp-dept').value = emp.dept || '';
-        document.getElementById('att-employee-modal').classList.add('active');
+        saveState();
+        renderEmployeeDropdown();
+        renderEmployeeList();
+        closeModal('att-employee-modal');
     }
 
     function deleteEmployee(index) {
-        if (confirm('Xoá nhân viên này? Các bản ghi cũ của họ vẫn sẽ được giữ lại trong lịch sử báo cáo.')) {
-            const emps = getEmployees();
-            emps.splice(index, 1);
-            setEmployees(emps);
-            renderAttAll();
-            showToast('Đã xoá nhân viên');
-        }
-    }
-
-    function startEditAttRecord(recId) {
-        const rec = getAttRecords().find(r => r.id === recId);
-        if (!rec) return;
-
-        document.getElementById('att-input-edit-id').value = rec.id;
-        document.getElementById('att-input-date').value = rec.date;
-        document.getElementById('att-input-employee').value = rec.employee;
-        document.getElementById('att-input-checkin').value = rec.checkin || '';
-        document.getElementById('att-input-checkout').value = rec.checkout || '';
-        document.getElementById('att-input-note').value = rec.note || '';
-
-        document.getElementById('att-form-title').textContent = '✏️ Sửa ca làm việc';
-        document.getElementById('att-btn-save').textContent = 'Cập nhật bản ghi';
-        document.getElementById('att-btn-cancel-edit').style.display = 'block';
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cancelEditAttRecord() {
-        document.getElementById('att-input-edit-id').value = '';
-        document.getElementById('att-input-checkin').value = '';
-        document.getElementById('att-input-checkout').value = '';
-        document.getElementById('att-input-note').value = '';
-
-        document.getElementById('att-form-title').textContent = '📝 Ghi nhận ca làm';
-        document.getElementById('att-btn-save').textContent = 'Lưu dữ liệu ca làm';
-        document.getElementById('att-btn-cancel-edit').style.display = 'none';
-    }
-
-    function deleteAttRecord(recId) {
-        if (confirm('Xoá bản ghi chấm công này?')) {
-            let recs = getAttRecords();
-            recs = recs.filter(r => r.id !== recId);
-            setAttRecords(recs);
-            renderTodayAttList();
-            showToast('Đã xoá bản ghi');
-        }
-    }
-
-    function renderAttAll() {
-        renderEmployeeSelect();
+        if (!confirm('Bạn có chắc chắn muốn xóa nhân viên này?')) return;
+        state.employees.splice(index, 1);
+        saveState();
+        renderEmployeeDropdown();
         renderEmployeeList();
-        renderTodayAttList();
+        showToast('🗑️ Đã xóa nhân viên');
     }
-
 
     // =========================================================================
-    // MODULE 2: CHI TIÊU LOGIC
+    // MODULE 2: CHI TIÊU & TESSERACT OCR SCANNER (ADVANCED PATTERN MATCHING)
     // =========================================================================
-    const EXP_DEFAULT_CATEGORIES = [
-        { id: 'c1', name: 'Ăn uống', type: 'expense' },
-        { id: 'c2', name: 'Đi lại', type: 'expense' },
-        { id: 'c3', name: 'Mua sắm', type: 'expense' },
-        { id: 'c4', name: 'Hóa đơn', type: 'expense' },
-        { id: 'c5', name: 'Giải trí', type: 'expense' },
-        { id: 'c6', name: 'Y tế', type: 'expense' },
-        { id: 'c7', name: 'Chuyển khoản', type: 'expense' },
-        { id: 'c8', name: 'Khác (Chi)', type: 'expense' },
-        { id: 'i1', name: 'Lương', type: 'income' },
-        { id: 'i2', name: 'Thưởng', type: 'income' },
-        { id: 'i3', name: 'Freelance', type: 'income' },
-        { id: 'i4', name: 'Đầu tư', type: 'income' },
-        { id: 'i5', name: 'Nhận chuyển khoản', type: 'income' },
-        { id: 'i6', name: 'Khác (Thu)', type: 'income' }
-    ];
-
-    let expCurrentType = 'expense';
-    let expCurrentReportMode = 'week';
-    let expCurrentImageFile = null;
-
-    function getExpCategories() {
-        try {
-            const data = localStorage.getItem('expense_categories_v1');
-            if (data) return JSON.parse(data);
-        } catch (e) {}
-        return EXP_DEFAULT_CATEGORIES;
-    }
-    function setExpCategories(data) { localStorage.setItem('expense_categories_v1', JSON.stringify(data)); }
-
-    function getTransactions() {
-        try {
-            const data = localStorage.getItem('expense_transactions_v1');
-            if (data) return JSON.parse(data);
-        } catch (e) {}
-        return [];
-    }
-    function setTransactions(data) { localStorage.setItem('expense_transactions_v1', JSON.stringify(data)); }
 
     function setExpType(type) {
-        expCurrentType = type;
-        const expenseBtn = document.getElementById('exp-type-expense');
-        const incomeBtn = document.getElementById('exp-type-income');
-        if (type === 'expense') {
-            expenseBtn.classList.add('active-expense');
-            incomeBtn.classList.remove('active-income');
-        } else {
-            incomeBtn.classList.add('active-income');
-            expenseBtn.classList.remove('active-expense');
-        }
-        renderExpCategorySelect();
+        state.currentExpType = type;
+        document.getElementById('exp-type-expense').className = `type-btn ${type === 'expense' ? 'active-expense' : ''}`;
+        document.getElementById('exp-type-income').className = `type-btn ${type === 'income' ? 'active-income' : ''}`;
+        renderCategoryDropdown();
     }
 
-    function renderExpCategorySelect() {
+    function renderCategoryDropdown() {
         const select = document.getElementById('exp-input-category');
-        const categories = getExpCategories().filter(c => c.type === expCurrentType);
-        if (!categories.length) {
-            select.innerHTML = '<option value="">Chưa có danh mục</option>';
+        const cats = state.categories.filter(c => c.type === state.currentExpType);
+        
+        if (cats.length === 0) {
+            select.innerHTML = `<option value="">-- Chưa có danh mục --</option>`;
             return;
         }
-        select.innerHTML = categories.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`).join('');
+        select.innerHTML = cats.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
     }
 
-    function renderExpCategoryList(filterText = '') {
-        const container = document.getElementById('exp-category-list');
-        let categories = getExpCategories();
-        if (filterText) {
-            categories = categories.filter(c => c.name.toLowerCase().includes(filterText.toLowerCase()));
-        }
-        if (!categories.length) {
-            container.innerHTML = '<div class="empty-state">Không tìm thấy danh mục phù hợp</div>';
-            return;
-        }
-
-        const incomeCats = categories.filter(c => c.type === 'income');
-        const expenseCats = categories.filter(c => c.type === 'expense');
-        let html = '';
-
-        if (incomeCats.length) {
-            html += `<div style="font-size:13px;font-weight:600;color:#15803d;margin:8px 0 4px;">📥 Thu nhập</div>`;
-            html += incomeCats.map(cat => {
-                const realIndex = getExpCategories().findIndex(c => c.id === cat.id);
-                return `<div class="list-item">
-                    <div><div class="item-name">${escapeHtml(cat.name)}</div>
-                    <div class="item-sub"><span class="cat-chip income">Thu nhập</span></div></div>
-                    <div style="display:flex;gap:6px;">
-                        <button type="button" class="btn btn-sm btn-outline" onclick="editExpCategory(${realIndex})">Sửa</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteExpCategory(${realIndex})">Xoá</button>
-                    </div></div>`;
-            }).join('');
-        }
-        if (expenseCats.length) {
-            html += `<div style="font-size:13px;font-weight:600;color:#b91c1c;margin:12px 0 4px;">📤 Chi tiêu</div>`;
-            html += expenseCats.map(cat => {
-                const realIndex = getExpCategories().findIndex(c => c.id === cat.id);
-                return `<div class="list-item">
-                    <div><div class="item-name">${escapeHtml(cat.name)}</div>
-                    <div class="item-sub"><span class="cat-chip expense">Chi tiêu</span></div></div>
-                    <div style="display:flex;gap:6px;">
-                        <button type="button" class="btn btn-sm btn-outline" onclick="editExpCategory(${realIndex})">Sửa</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteExpCategory(${realIndex})">Xoá</button>
-                    </div></div>`;
-            }).join('');
-        }
-        container.innerHTML = html;
-    }
-
-    function renderTodayExpList() {
+    function renderExpTodayList() {
+        const today = document.getElementById('exp-input-date').value || getTodayStr();
+        const records = state.expRecords.filter(r => r.date === today);
         const container = document.getElementById('exp-today-list');
-        const selectedDate = document.getElementById('exp-input-date').value || getTodayStr();
-        const transactions = getTransactions().filter(t => t.date === selectedDate);
-        const categories = getExpCategories();
 
-        if (!transactions.length) {
-            container.innerHTML = '<div class="empty-state">Chưa có giao dịch nào trong ngày này</div>';
+        if (records.length === 0) {
+            container.innerHTML = `<div class="empty-state">Chưa có giao dịch nào cho ngày ${today}</div>`;
             return;
         }
 
-        let dayIncome = 0, dayExpense = 0;
-        transactions.forEach(t => {
-            if (t.type === 'income') dayIncome += t.amount;
-            else dayExpense += t.amount;
-        });
-
-        let html = `
-            <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px;">
-                <span style="color:#15803d;font-weight:600;">Thu: ${formatMoney(dayIncome)}</span>
-                <span style="color:#b91c1c;font-weight:600;">Chi: ${formatMoney(dayExpense)}</span>
-                <span style="color:var(--primary);font-weight:600;">Còn: ${formatMoney(dayIncome - dayExpense)}</span>
+        container.innerHTML = records.map(r => `
+            <div class="list-item">
+                <div>
+                    <div class="item-name">${escapeHtml(r.recipient || r.category)}</div>
+                    <div class="item-sub">
+                        <span class="cat-chip ${r.type}">${escapeHtml(r.category)}</span>
+                        ${r.note ? escapeHtml(r.note) : ''}
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="item-amount ${r.type}">${r.type === 'income' ? '+' : '-'}${formatVND(r.amount)}</div>
+                    <div style="margin-top:4px;">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="editExpRecord('${r.id}')">✏️</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteExpRecord('${r.id}')">🗑️</button>
+                    </div>
+                </div>
             </div>
-            <div class="table-wrap"><table>
-                <thead><tr><th>Loại</th><th>Danh mục</th><th>Số tiền</th><th>Người nhận</th><th>Thao tác</th></tr></thead>
-                <tbody>`;
-
-        transactions.forEach(t => {
-            const cat = categories.find(c => c.id === t.category);
-            html += `<tr>
-                <td><span class="badge ${t.type === 'income' ? 'badge-income' : 'badge-expense'}">${t.type === 'income' ? 'Thu' : 'Chi'}</span></td>
-                <td>${cat ? escapeHtml(cat.name) : '—'}</td>
-                <td class="item-amount ${t.type}">${formatMoney(t.amount)}</td>
-                <td style="max-width:90px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(t.recipient || t.note) || '—'}</td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline" onclick="startEditTransaction('${t.id}')">✏️</button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteTransaction('${t.id}')">✕</button>
-                </td>
-            </tr>`;
-        });
-        html += '</tbody></table></div>';
-        container.innerHTML = html;
+        `).join('');
     }
 
-    function switchExpReportMode(mode) {
-        expCurrentReportMode = mode;
-        const weekBtn = document.getElementById('exp-mode-week-btn');
-        const monthBtn = document.getElementById('exp-mode-month-btn');
-        const weekFilter = document.getElementById('exp-group-filter-week');
-        const monthFilter = document.getElementById('exp-group-filter-month');
-        if (mode === 'week') {
-            weekBtn.classList.add('active');
-            monthBtn.classList.remove('active');
-            weekFilter.style.display = 'block';
-            monthFilter.style.display = 'none';
+    function saveExpRecord() {
+        const id = document.getElementById('exp-input-edit-id').value;
+        const type = state.currentExpType;
+        const date = document.getElementById('exp-input-date').value;
+        const category = document.getElementById('exp-input-category').value;
+        const amount = parseFloat(document.getElementById('exp-input-amount').value);
+        const recipient = document.getElementById('exp-input-recipient').value.trim();
+        const note = document.getElementById('exp-input-note').value.trim();
+
+        if (!date || isNaN(amount) || amount <= 0 || !category) {
+            showToast('⚠️ Vui lòng nhập ngày, chọn danh mục và số tiền hợp lệ');
+            return;
+        }
+
+        if (id) {
+            const idx = state.expRecords.findIndex(r => r.id === id);
+            if (idx !== -1) {
+                state.expRecords[idx] = { id, type, date, category, amount, recipient, note };
+                showToast('✅ Đã cập nhật giao dịch');
+            }
         } else {
-            monthBtn.classList.add('active');
-            weekBtn.classList.remove('active');
-            monthFilter.style.display = 'block';
-            weekFilter.style.display = 'none';
+            const newRec = { id: generateUUID(), type, date, category, amount, recipient, note };
+            state.expRecords.push(newRec);
+            showToast('✅ Đã lưu giao dịch');
         }
-        generateExpReport();
+
+        saveState();
+        resetExpForm();
+        renderExpTodayList();
     }
 
-    function generateExpReport() {
-        const allTx = getTransactions();
-        const categories = getExpCategories();
-        let filtered = [];
-        let infoText = '';
-        let timeLabel = '';
-
-        if (expCurrentReportMode === 'week') {
-            const weekStr = document.getElementById('exp-report-week').value;
-            if (!weekStr) return showToast('Vui lòng chọn tuần báo cáo');
-            const range = getDateRangeOfISOWeek(weekStr);
-            if (!range) return;
-            filtered = allTx.filter(t => t.date >= range.start && t.date <= range.end);
-            infoText = `Từ ${range.start.split('-').reverse().join('/')} đến ${range.end.split('-').reverse().join('/')}`;
-            timeLabel = weekStr;
-        } else {
-            const monthStr = document.getElementById('exp-report-month').value;
-            if (!monthStr) return showToast('Vui lòng chọn tháng báo cáo');
-            const [year, month] = monthStr.split('-').map(Number);
-            filtered = allTx.filter(t => {
-                if (!t.date) return false;
-                const d = new Date(t.date + 'T00:00:00');
-                return d.getFullYear() === year && (d.getMonth() + 1) === month;
-            });
-            infoText = `Tháng ${month}/${year}`;
-            timeLabel = monthStr;
-        }
-
-        document.getElementById('exp-report-range-info').textContent = infoText;
-
-        let totalIncome = 0, totalExpense = 0;
-        const incomeByCat = {};
-        const expenseByCat = {};
-
-        filtered.forEach(t => {
-            const cat = categories.find(c => c.id === t.category);
-            const catName = cat ? cat.name : 'Không rõ';
-            if (t.type === 'income') {
-                totalIncome += t.amount;
-                incomeByCat[catName] = (incomeByCat[catName] || 0) + t.amount;
-            } else {
-                totalExpense += t.amount;
-                expenseByCat[catName] = (expenseByCat[catName] || 0) + t.amount;
-            }
-        });
-
-        const balance = totalIncome - totalExpense;
-
-        document.getElementById('exp-report-summary').innerHTML = `
-            <div class="summary-item"><div class="number income">${formatMoney(totalIncome)}</div><div class="label">Tổng thu</div></div>
-            <div class="summary-item"><div class="number expense">${formatMoney(totalExpense)}</div><div class="label">Tổng chi</div></div>
-            <div class="summary-item"><div class="number balance">${formatMoney(balance)}</div><div class="label">Số dư</div></div>
-        `;
-
-        let incomeHtml = '';
-        if (Object.keys(incomeByCat).length) {
-            incomeHtml = `<div class="card-title" style="margin-bottom:8px;">📥 Chi tiết thu nhập</div>
-                <div class="table-wrap"><table><thead><tr><th>Danh mục</th><th>Số tiền</th><th>Tỷ lệ</th></tr></thead><tbody>`;
-            Object.entries(incomeByCat).sort((a,b) => b[1]-a[1]).forEach(([name, amount]) => {
-                const pct = totalIncome ? ((amount / totalIncome) * 100).toFixed(1) : 0;
-                incomeHtml += `<tr><td>${escapeHtml(name)}</td><td class="item-amount income">${formatMoney(amount)}</td><td>${pct}%</td></tr>`;
-            });
-            incomeHtml += '</tbody></table></div>';
-        } else {
-            incomeHtml = '<div class="empty-state">Không có khoản thu nhập trong kỳ</div>';
-        }
-        document.getElementById('exp-report-income-detail').innerHTML = incomeHtml;
-
-        let expenseHtml = '';
-        if (Object.keys(expenseByCat).length) {
-            expenseHtml = `<div class="card-title" style="margin-bottom:8px;">📤 Chi tiết chi tiêu</div>
-                <div class="table-wrap"><table><thead><tr><th>Danh mục</th><th>Số tiền</th><th>Tỷ lệ</th></tr></thead><tbody>`;
-            Object.entries(expenseByCat).sort((a,b) => b[1]-a[1]).forEach(([name, amount]) => {
-                const pct = totalExpense ? ((amount / totalExpense) * 100).toFixed(1) : 0;
-                expenseHtml += `<tr><td>${escapeHtml(name)}</td><td class="item-amount expense">${formatMoney(amount)}</td><td>${pct}%</td></tr>`;
-            });
-            expenseHtml += '</tbody></table></div>';
-        } else {
-            expenseHtml = '<div class="empty-state">Không có khoản chi tiêu trong kỳ</div>';
-        }
-        document.getElementById('exp-report-expense-detail').innerHTML = expenseHtml;
-
-        let listHtml = '';
-        if (filtered.length) {
-            listHtml = `<div class="card-title" style="margin-bottom:8px;">📋 Danh sách giao dịch</div>
-                <div class="table-wrap"><table>
-                <thead><tr><th>Ngày</th><th>Loại</th><th>Danh mục</th><th>Số tiền</th><th>Người nhận</th></tr></thead><tbody>`;
-            filtered.sort((a,b) => b.date.localeCompare(a.date)).forEach(t => {
-                const cat = categories.find(c => c.id === t.category);
-                listHtml += `<tr>
-                    <td>${t.date.split('-').reverse().join('/')}</td>
-                    <td><span class="badge ${t.type === 'income' ? 'badge-income' : 'badge-expense'}">${t.type === 'income' ? 'Thu' : 'Chi'}</span></td>
-                    <td>${cat ? escapeHtml(cat.name) : '—'}</td>
-                    <td class="item-amount ${t.type}">${formatMoney(t.amount)}</td>
-                    <td style="max-width:90px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(t.recipient || t.note) || '—'}</td>
-                </tr>`;
-            });
-            listHtml += '</tbody></table></div>';
-        }
-        document.getElementById('exp-report-list').innerHTML = listHtml;
-
-        window._currentExpReport = {
-            mode: expCurrentReportMode,
-            timeLabel,
-            infoText,
-            totalIncome,
-            totalExpense,
-            balance,
-            incomeByCat,
-            expenseByCat,
-            transactions: filtered,
-            categories
-        };
-    }
-
-    // Nâng cấp OCR Engine & Regex Nhận Diện Linh Hoạt
-    function parseReceiptText(text) {
-        const result = { amount: null, date: null, recipient: null, content: null, bank: null };
-        if (!text) return result;
-
-        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        const full = text.replace(/\s+/g, ' ');
-
-        const amountPatterns = [
-            /(?:số\s*tiền|so\s*tien|amount|giá\s*trị|gia\s*tri|số\s*tiền\s*gd|sotien)[:\s]*([\d.,]+)/i,
-            /(?:chuyển\s*khoản|chuyen\s*khoan|thanh\s*toán|thanh\s*toan)[:\s]*([\d.,]+)/i,
-            /([\d]{1,3}(?:[.,]\d{3}){1,4})\s*(?:đ|vnd|vnđ|d)\b/i
-        ];
-
-        for (const re of amountPatterns) {
-            const m = full.match(re);
-            if (m) {
-                const original = m[1];
-                let raw = original.replace(/[.,]/g, '');
-                const num = parseInt(raw, 10);
-                if (num >= 1000 && num < 1e12) {
-                    result.amount = num;
-                    break;
-                }
-            }
-        }
-
-        if (!result.amount) {
-            const numbers = full.match(/\b\d{1,3}(?:[.,]\d{3})+\b|\b\d{5,12}\b/g) || [];
-            let max = 0;
-            numbers.forEach(n => {
-                const cleaned = n.replace(/[.,]/g, '');
-                const v = parseInt(cleaned, 10);
-                if (v > max && v >= 1000 && v < 1e11) max = v;
-            });
-            if (max) result.amount = max;
-        }
-
-        const datePatterns = [
-            /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/,
-            /(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/
-        ];
-
-        for (const re of datePatterns) {
-            const m = full.match(re);
-            if (m) {
-                let d, mo, y;
-                if (m[0].match(/^\d{4}/)) {
-                    y = parseInt(m[1], 10); mo = parseInt(m[2], 10); d = parseInt(m[3], 10);
-                } else {
-                    d = parseInt(m[1], 10); mo = parseInt(m[2], 10); y = parseInt(m[3], 10);
-                    if (y < 100) y += 2000;
-                }
-                if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
-                    result.date = `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                    break;
-                }
-            }
-        }
-
-        const recipientPatterns = [
-            /(?:đến|toi|tới|người\s*nhận|nguoi\s*nhan|beneficiary|to)[:\s]+([A-ZÀ-Ỹ\s]{2,40})/i,
-            /(?:chuyển\s*cho|chuyen\s*cho)[:\s]+([A-ZÀ-Ỹ\s]{2,40})/i
-        ];
-
-        for (const re of recipientPatterns) {
-            const m = full.match(re);
-            if (m && m[1]) {
-                let name = m[1].trim().replace(/\s+/g, ' ');
-                if (name.length > 3 && !/\d{5,}/.test(name)) {
-                    result.recipient = name;
-                    break;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    async function analyzeExpImage(file) {
-        const statusEl = document.getElementById('exp-ocr-status');
-        const progressEl = document.getElementById('exp-ocr-progress');
-        const barEl = document.getElementById('exp-ocr-bar');
-        const rawEl = document.getElementById('exp-ocr-raw');
-        const btnAnalyze = document.getElementById('exp-btn-analyze');
-
-        statusEl.className = 'ocr-status loading';
-        statusEl.textContent = 'Đang nhận diện chữ (OCR)... vui lòng chờ';
-        progressEl.classList.add('show');
-        barEl.style.width = '5%';
-        rawEl.classList.remove('show');
-        btnAnalyze.disabled = true;
-
-        try {
-            if (typeof Tesseract === 'undefined') {
-                throw new Error("Tesseract JS chưa được tải thành công.");
-            }
-            const worker = await Tesseract.createWorker('vie+eng', 1, {
-                logger: m => {
-                    if (m.status === 'recognizing text' && m.progress) {
-                        const pct = Math.round(m.progress * 100);
-                        barEl.style.width = pct + '%';
-                        statusEl.textContent = `Đang nhận diện... ${pct}%`;
-                    }
-                }
-            });
-
-            const { data: { text } } = await worker.recognize(file);
-            await worker.terminate();
-
-            barEl.style.width = '100%';
-            statusEl.className = 'ocr-status success';
-            statusEl.textContent = 'Phân tích hoàn tất!';
-
-            rawEl.textContent = text || '(Không nhận diện được chữ)';
-            rawEl.classList.add('show');
-
-            const parsed = parseReceiptText(text);
-
-            if (parsed.date) document.getElementById('exp-input-date').value = parsed.date;
-            if (parsed.amount) document.getElementById('exp-input-amount').value = parsed.amount;
-            if (parsed.recipient) document.getElementById('exp-input-recipient').value = parsed.recipient;
-
-            setExpType('expense');
-            showToast('Đã tự động điền các thông tin tìm thấy!');
-        } catch (err) {
-            console.error(err);
-            statusEl.className = 'ocr-status error';
-            statusEl.textContent = err.message || 'Lỗi phân tích ảnh.';
-        } finally {
-            btnAnalyze.disabled = false;
-            setTimeout(() => {
-                progressEl.classList.remove('show');
-                barEl.style.width = '0%';
-            }, 800);
-        }
-    }
-
-    function editExpCategory(index) {
-        const cat = getExpCategories()[index];
-        document.getElementById('exp-modal-edit-index').value = index;
-        document.getElementById('exp-modal-category-title').textContent = 'Chỉnh sửa danh mục';
-        document.getElementById('exp-modal-cat-name').value = cat.name;
-        document.getElementById('exp-modal-cat-type').value = cat.type;
-        document.getElementById('exp-category-modal').classList.add('active');
-    }
-
-    function deleteExpCategory(index) {
-        if (confirm('Bạn có chắc muốn xoá danh mục này?')) {
-            const cats = getExpCategories();
-            cats.splice(index, 1);
-            setExpCategories(cats);
-            renderExpAll();
-            showToast('Đã xoá danh mục');
-        }
-    }
-
-    function startEditTransaction(txId) {
-        const tx = getTransactions().find(t => t.id === txId);
-        if (!tx) return;
-
-        document.getElementById('exp-input-edit-id').value = tx.id;
-        setExpType(tx.type);
-        document.getElementById('exp-input-date').value = tx.date;
-        document.getElementById('exp-input-category').value = tx.category;
-        document.getElementById('exp-input-amount').value = tx.amount;
-        document.getElementById('exp-input-recipient').value = tx.recipient || '';
-        document.getElementById('exp-input-note').value = tx.note || '';
-
-        document.getElementById('exp-form-title').textContent = '✏️ Sửa giao dịch';
-        document.getElementById('exp-btn-save').textContent = 'Cập nhật giao dịch';
-        document.getElementById('exp-btn-cancel-edit').style.display = 'block';
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cancelEditTransaction() {
+    function resetExpForm() {
         document.getElementById('exp-input-edit-id').value = '';
+        document.getElementById('exp-form-title').innerText = '📝 Ghi nhận giao dịch';
         document.getElementById('exp-input-amount').value = '';
         document.getElementById('exp-input-recipient').value = '';
         document.getElementById('exp-input-note').value = '';
-
-        document.getElementById('exp-form-title').textContent = '📝 Ghi nhận giao dịch';
-        document.getElementById('exp-btn-save').textContent = 'Lưu giao dịch';
         document.getElementById('exp-btn-cancel-edit').style.display = 'none';
+        document.getElementById('exp-btn-save').innerText = 'Lưu giao dịch';
     }
 
-    function deleteTransaction(txId) {
-        if (confirm('Xoá giao dịch này?')) {
-            let txs = getTransactions();
-            txs = txs.filter(t => t.id !== txId);
-            setTransactions(txs);
-            renderTodayExpList();
-            showToast('Đã xoá giao dịch');
+    function editExpRecord(id) {
+        const r = state.expRecords.find(x => x.id === id);
+        if (!r) return;
+        setExpType(r.type);
+        document.getElementById('exp-input-edit-id').value = r.id;
+        document.getElementById('exp-input-date').value = r.date;
+        document.getElementById('exp-input-category').value = r.category;
+        document.getElementById('exp-input-amount').value = r.amount;
+        document.getElementById('exp-input-recipient').value = r.recipient || '';
+        document.getElementById('exp-input-note').value = r.note || '';
+        document.getElementById('exp-form-title').innerText = '✏️ Chỉnh sửa giao dịch';
+        document.getElementById('exp-btn-cancel-edit').style.display = 'block';
+        document.getElementById('exp-btn-save').innerText = 'Cập nhật giao dịch';
+    }
+
+    function deleteExpRecord(id) {
+        if (!confirm('Xóa giao dịch này?')) return;
+        state.expRecords = state.expRecords.filter(r => r.id !== id);
+        saveState();
+        renderExpTodayList();
+        showToast('🗑️ Đã xóa giao dịch');
+    }
+
+    // --- Tesseract OCR Scanner Engine ---
+    let selectedImageFile = null;
+
+    function setupOCRScanner() {
+        const fileInput = document.getElementById('exp-scan-input');
+        const chooseBtn = document.getElementById('exp-btn-choose-image');
+        const takePhotoBtn = document.getElementById('exp-btn-take-photo');
+        const analyzeBtn = document.getElementById('exp-btn-analyze');
+        const clearBtn = document.getElementById('exp-btn-clear-image');
+        const preview = document.getElementById('exp-scan-preview');
+        const placeholder = document.getElementById('exp-scan-placeholder');
+        const scanArea = document.getElementById('exp-scan-area');
+
+        chooseBtn.addEventListener('click', () => {
+            fileInput.removeAttribute('capture');
+            fileInput.click();
+        });
+
+        takePhotoBtn.addEventListener('click', () => {
+            fileInput.setAttribute('capture', 'environment');
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                selectedImageFile = e.target.files[0];
+                const url = URL.createObjectURL(selectedImageFile);
+                preview.src = url;
+                preview.classList.add('show');
+                placeholder.style.display = 'none';
+                scanArea.classList.add('has-image');
+                analyzeBtn.style.display = 'inline-flex';
+                clearBtn.style.display = 'inline-flex';
+                document.getElementById('exp-ocr-status').innerText = 'Hình ảnh đã chọn. Nhấn "Phân tích" để quét.';
+                document.getElementById('exp-ocr-status').className = 'ocr-status';
+            }
+        });
+
+        clearBtn.addEventListener('click', resetOCR);
+        analyzeBtn.addEventListener('click', processImageOCR);
+    }
+
+    function resetOCR() {
+        selectedImageFile = null;
+        document.getElementById('exp-scan-input').value = '';
+        document.getElementById('exp-scan-preview').src = '';
+        document.getElementById('exp-scan-preview').classList.remove('show');
+        document.getElementById('exp-scan-placeholder').style.display = 'block';
+        document.getElementById('exp-scan-area').classList.remove('has-image');
+        document.getElementById('exp-btn-analyze').style.display = 'none';
+        document.getElementById('exp-btn-clear-image').style.display = 'none';
+        document.getElementById('exp-ocr-status').innerText = '';
+        document.getElementById('exp-ocr-raw').classList.remove('show');
+        document.getElementById('exp-ocr-progress').classList.remove('show');
+    }
+
+    async function processImageOCR() {
+        if (!selectedImageFile) return;
+
+        const status = document.getElementById('exp-ocr-status');
+        const pBar = document.getElementById('exp-ocr-progress');
+        const bar = document.getElementById('exp-ocr-bar');
+        const rawDiv = document.getElementById('exp-ocr-raw');
+
+        status.className = 'ocr-status loading';
+        status.innerText = 'Đang khởi chạy OCR...';
+        pBar.classList.add('show');
+        bar.style.width = '10%';
+
+        try {
+            const worker = await Tesseract.createWorker('vie+eng');
+            
+            status.innerText = 'Đang đọc và bóc tách dữ liệu từ biên lai...';
+            bar.style.width = '40%';
+
+            const ret = await worker.recognize(selectedImageFile);
+            const text = ret.data.text;
+            bar.style.width = '90%';
+
+            await worker.terminate();
+
+            bar.style.width = '100%';
+            status.className = 'ocr-status success';
+            status.innerText = '✅ Quét thành công!';
+
+            rawDiv.innerText = "=== Nội dung thô quét được ===\n" + text;
+            rawDiv.classList.add('show');
+
+            parseBankReceiptText(text);
+
+            setTimeout(() => pBar.classList.remove('show'), 1000);
+        } catch (err) {
+            console.error(err);
+            status.className = 'ocr-status error';
+            status.innerText = '❌ Lỗi khi quét ảnh. Thử lại với ảnh rõ nét hơn.';
+            pBar.classList.remove('show');
         }
     }
 
-    function renderExpAll() {
-        renderExpCategorySelect();
-        renderExpCategoryList();
-        renderTodayExpList();
+    function parseBankReceiptText(text) {
+        if (!text) return;
+        
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        let detectedAmount = 0;
+        let detectedRecipient = '';
+        let detectedDate = getTodayStr();
+
+        // 1. Phân tích Số tiền (Patterns: "VND 500.000", "500,000 d", "Số tiền: 1,000,000")
+        const amountRegexes = [
+            (/(?:số\s*tiền|thành\s*tiền|giao\d*dịch|vnd|đ|amount)[\s:=]*([0-9.,]+)/i),
+            (/([0-9]{1,3}(?:[.,][0-9]{3})+)\s*(?:VND|VNĐ|đ|d)/i),
+            (/([0-9]{4,9})\s*(?:VND|VNĐ|đ|d)/i)
+        ];
+
+        for (const line of lines) {
+            for (const reg of amountRegexes) {
+                const match = line.match(reg);
+                if (match && match[1]) {
+                    const rawNumStr = match[1].replace(/[^0-9]/g, '');
+                    const val = parseInt(rawNumStr, 10);
+                    if (val >= 1000 && val <= 500000000) { // Giới hạn hợp lý cho 1 giao dịch
+                        detectedAmount = val;
+                        break;
+                    }
+                }
+            }
+            if (detectedAmount > 0) break;
+        }
+
+        // 2. Phân tích Người nhận / Nội dung (Patterns: "Tên người nhận", "Tài khoản nhận", "Nội dung")
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (/(?:người\s*nhận|tên\s*người\s*nhận|đến\s*tài\s*khoản|tài\s*khoản\s*hưởng|bên\s*nhận)/i.test(line)) {
+                let candidate = line.replace(/.*(?:người\s*nhận|tên\s*người\s*nhận|đến\s*tài\s*khoản|tài\s*khoản\s*hưởng|bên\s*nhận)[\s:=]*/i, '');
+                if (!candidate && lines[i + 1]) candidate = lines[i + 1];
+                if (candidate && candidate.length > 2) {
+                    detectedRecipient = candidate;
+                    break;
+                }
+            }
+        }
+
+        if (!detectedRecipient) {
+            for (let i = 0; i < lines.length; i++) {
+                if (/(?:nội\s*dung|lý\s*do|thông\s*tin)/i.test(lines[i])) {
+                    let candidate = lines[i].replace(/.*(?:nội\s*dung|lý\s*do|thông\s*tin)[\s:=]*/i, '');
+                    if (!candidate && lines[i + 1]) candidate = lines[i + 1];
+                    if (candidate) {
+                        detectedRecipient = candidate;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 3. Phân tích Ngày (Patterns: DD/MM/YYYY, YYYY-MM-DD)
+        const dateMatch = text.match(/([0-3]?[0-9])[\/.-]([0-1]?[0-9])[\/.-](202[0-9])/);
+        if (dateMatch) {
+            const day = String(dateMatch[1]).padStart(2, '0');
+            const month = String(dateMatch[2]).padStart(2, '0');
+            const year = dateMatch[3];
+            detectedDate = `${year}-${month}-${day}`;
+        }
+
+        // Tự động điền vào Form
+        setExpType('expense');
+        if (detectedAmount > 0) document.getElementById('exp-input-amount').value = detectedAmount;
+        if (detectedRecipient) document.getElementById('exp-input-recipient').value = detectedRecipient;
+        document.getElementById('exp-input-date').value = detectedDate;
+
+        showToast('🎉 Đã trích xuất thông tin hóa đơn vào Form!');
     }
 
+    function switchExpReportMode(mode) {
+        state.expReportMode = mode;
+        document.getElementById('exp-mode-week-btn').classList.toggle('active', mode === 'week');
+        document.getElementById('exp-mode-month-btn').classList.toggle('active', mode === 'month');
+        document.getElementById('exp-group-filter-week').style.display = mode === 'week' ? 'block' : 'none';
+        document.getElementById('exp-group-filter-month').style.display = mode === 'month' ? 'block' : 'none';
+    }
 
-    // =========================================================================
-    // KHỞI TẠO & SỰ KIỆN EVENT LISTENERS
-    // =========================================================================
-    document.addEventListener('DOMContentLoaded', () => {
-        // Khởi tạo ngày ban đầu chuẩn giờ local
-        const todayStr = getTodayStr();
-        const currentWeekStr = getCurrentWeekStr();
-        const currentMonthStr = todayStr.slice(0, 7);
+    function generateExpReport() {
+        let filtered = [];
+        let infoText = '';
 
-        document.getElementById('att-input-date').value = todayStr;
-        document.getElementById('att-report-week').value = currentWeekStr;
-        document.getElementById('att-report-month').value = currentMonthStr;
+        if (state.expReportMode === 'week') {
+            const val = document.getElementById('exp-report-week').value;
+            if (!val) { showToast('⚠️ Chọn tuần để báo cáo'); return; }
+            infoText = `Báo cáo Chi tiêu Tuần: ${val}`;
+            filtered = state.expRecords.filter(r => {
+                const rDate = new Date(r.date);
+                if (isNaN(rDate)) return false;
+                const d = new Date(rDate.getTime());
+                d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+                const year = d.getFullYear();
+                const firstDay = new Date(year, 0, 1);
+                const week = Math.ceil((((d - firstDay) / 86400000) + 1) / 7);
+                return `${year}-W${String(week).padStart(2, '0')}` === val;
+            });
+        } else {
+            const val = document.getElementById('exp-report-month').value;
+            if (!val) { showToast('⚠️ Chọn tháng để báo cáo'); return; }
+            infoText = `Báo cáo Chi tiêu Tháng: ${val}`;
+            filtered = state.expRecords.filter(r => r.date && r.date.startsWith(val));
+        }
 
-        document.getElementById('exp-input-date').value = todayStr;
-        document.getElementById('exp-report-week').value = currentWeekStr;
-        document.getElementById('exp-report-month').value = currentMonthStr;
+        document.getElementById('exp-report-range-info').innerText = `${infoText} (${filtered.length} giao dịch)`;
 
-        // Load cấu hình
-        const cfg = getAppConfig();
-        document.getElementById('att-cfg-stdin').value = cfg.stdIn || '08:00';
-        document.getElementById('att-cfg-lunch-start').value = cfg.lunchStart || '11:30';
-        document.getElementById('att-cfg-lunch-end').value = cfg.lunchEnd || '13:00';
-        document.getElementById('att-cfg-script-url').value = cfg.scriptUrl || '';
+        let totalIncome = 0;
+        let totalExpense = 0;
+        const catIncomeMap = {};
+        const catExpenseMap = {};
 
-        renderAttAll();
-        renderExpAll();
-
-        // Save Config Handler
-        document.getElementById('att-btn-save-cfg').addEventListener('click', () => {
-            const newCfg = {
-                stdIn: document.getElementById('att-cfg-stdin').value || '08:00',
-                lunchStart: document.getElementById('att-cfg-lunch-start').value || '11:30',
-                lunchEnd: document.getElementById('att-cfg-lunch-end').value || '13:00',
-                scriptUrl: document.getElementById('att-cfg-script-url').value.trim()
-            };
-            setAppConfig(newCfg);
-            showToast('Đã lưu cài đặt cấu hình');
-            renderTodayAttList();
+        filtered.forEach(r => {
+            if (r.type === 'income') {
+                totalIncome += r.amount;
+                catIncomeMap[r.category] = (catIncomeMap[r.category] || 0) + r.amount;
+            } else {
+                totalExpense += r.amount;
+                catExpenseMap[r.category] = (catExpenseMap[r.category] || 0) + r.amount;
+            }
         });
 
-        // Backup Full JSON Export
+        const net = totalIncome - totalExpense;
+
+        document.getElementById('exp-report-summary').innerHTML = `
+            <div class="summary-item">
+                <div class="number income">${formatVND(totalIncome)}</div>
+                <div class="label">Tổng Thu</div>
+            </div>
+            <div class="summary-item">
+                <div class="number expense">${formatVND(totalExpense)}</div>
+                <div class="label">Tổng Chi</div>
+            </div>
+            <div class="summary-item">
+                <div class="number balance">${formatVND(net)}</div>
+                <div class="label">Dư Tích Lũy</div>
+            </div>
+        `;
+
+        // Render Thu nhập theo Danh mục
+        document.getElementById('exp-report-income-detail').innerHTML = `
+            <div style="font-weight:700;font-size:14px;color:#15803d;margin-bottom:8px;">📈 Thu nhập theo danh mục:</div>
+            ${Object.keys(catIncomeMap).length === 0 ? '<div class="empty-state">Không có thu nhập</div>' : `
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Danh mục</th><th>Số tiền</th><th>Tỷ lệ</th></tr></thead>
+                        <tbody>
+                            ${Object.keys(catIncomeMap).map(cat => {
+                                const amt = catIncomeMap[cat];
+                                const pct = ((amt / (totalIncome || 1)) * 100).toFixed(1);
+                                return `<tr><td><b>${escapeHtml(cat)}</b></td><td>${formatVND(amt)}</td><td>${pct}%</td></tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `}
+        `;
+
+        // Render Chi tiêu theo Danh mục
+        document.getElementById('exp-report-expense-detail').innerHTML = `
+            <div style="font-weight:700;font-size:14px;color:#b91c1c;margin-bottom:8px;">📉 Chi tiêu theo danh mục:</div>
+            ${Object.keys(catExpenseMap).length === 0 ? '<div class="empty-state">Không có chi tiêu</div>' : `
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Danh mục</th><th>Số tiền</th><th>Tỷ lệ</th></tr></thead>
+                        <tbody>
+                            ${Object.keys(catExpenseMap).map(cat => {
+                                const amt = catExpenseMap[cat];
+                                const pct = ((amt / (totalExpense || 1)) * 100).toFixed(1);
+                                return `<tr><td><b>${escapeHtml(cat)}</b></td><td>${formatVND(amt)}</td><td>${pct}%</td></tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `}
+        `;
+    }
+
+    function exportExpCSV() {
+        if (state.expRecords.length === 0) {
+            showToast('⚠️ Không có dữ liệu chi tiêu để xuất!');
+            return;
+        }
+
+        let csv = '\uFEFF';
+        csv += 'ID,Loai,Ngay,DanhMuc,SoTien,NguoiNhan,GhiChu\n';
+
+        state.expRecords.forEach(r => {
+            const row = [
+                escapeCsvCell(r.id),
+                escapeCsvCell(r.type === 'income' ? 'Thu nhập' : 'Chi tiêu'),
+                escapeCsvCell(r.date),
+                escapeCsvCell(r.category),
+                escapeCsvCell(r.amount),
+                escapeCsvCell(r.recipient || ''),
+                escapeCsvCell(r.note || '')
+            ];
+            csv += row.join(',') + '\n';
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Bao_Cao_Chi_Tieu_${getTodayStr()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 Đã xuất file CSV Chi tiêu thành công');
+    }
+
+    function renderCategoryList() {
+        const search = (document.getElementById('exp-search-category').value || '').toLowerCase();
+        const filtered = state.categories.filter(c => c.name.toLowerCase().includes(search));
+        const container = document.getElementById('exp-category-list');
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-state">Không tìm thấy danh mục nào</div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map((c, idx) => `
+            <div class="list-item">
+                <div>
+                    <span class="cat-chip ${c.type}">${c.type === 'income' ? 'Thu' : 'Chi'}</span>
+                    <span class="emp-name">${escapeHtml(c.name)}</span>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="openEditCategoryModal(${idx})">✏️</button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteCategory(${idx})">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function openEditCategoryModal(index = null) {
+        if (index !== null) {
+            const c = state.categories[index];
+            document.getElementById('exp-modal-category-title').innerText = 'Sửa danh mục';
+            document.getElementById('exp-modal-cat-name').value = c.name;
+            document.getElementById('exp-modal-cat-type').value = c.type;
+            document.getElementById('exp-modal-edit-index').value = index;
+        } else {
+            document.getElementById('exp-modal-category-title').innerText = 'Thêm danh mục mới';
+            document.getElementById('exp-modal-cat-name').value = '';
+            document.getElementById('exp-modal-cat-type').value = 'expense';
+            document.getElementById('exp-modal-edit-index').value = '';
+        }
+        openModal('exp-category-modal');
+    }
+
+    function saveCategoryModal() {
+        const name = document.getElementById('exp-modal-cat-name').value.trim();
+        const type = document.getElementById('exp-modal-cat-type').value;
+        const idxStr = document.getElementById('exp-modal-edit-index').value;
+
+        if (!name) {
+            showToast('⚠️ Vui lòng nhập tên danh mục');
+            return;
+        }
+
+        if (idxStr !== '') {
+            const idx = parseInt(idxStr);
+            state.categories[idx] = { ...state.categories[idx], name, type };
+            showToast('✅ Đã cập nhật danh mục');
+        } else {
+            if (state.categories.some(c => c.name.toLowerCase() === name.toLowerCase() && c.type === type)) {
+                showToast('⚠️ Danh mục này đã tồn tại!');
+                return;
+            }
+            state.categories.push({ id: generateUUID(), name, type });
+            showToast('✅ Đã thêm danh mục mới');
+        }
+
+        saveState();
+        renderCategoryDropdown();
+        renderCategoryList();
+        closeModal('exp-category-modal');
+    }
+
+    function deleteCategory(index) {
+        if (!confirm('Bạn chắc chắn muốn xóa danh mục này?')) return;
+        state.categories.splice(index, 1);
+        saveState();
+        renderCategoryDropdown();
+        renderCategoryList();
+        showToast('🗑️ Đã xóa danh mục');
+    }
+
+    // =========================================================================
+    // GOOGLE APPS SCRIPT INTEGRATION & BACKUP / RESTORE
+    // =========================================================================
+
+    function loadConfigUI() {
+        document.getElementById('att-cfg-stdin').value = state.config.standardIn || '08:00';
+        document.getElementById('att-cfg-lunch-start').value = state.config.lunchStart || '12:00';
+        document.getElementById('att-cfg-lunch-end').value = state.config.lunchEnd || '13:00';
+        document.getElementById('att-cfg-script-url').value = state.config.scriptUrl || '';
+    }
+
+    function saveConfigUI() {
+        state.config.standardIn = document.getElementById('att-cfg-stdin').value || '08:00';
+        state.config.lunchStart = document.getElementById('att-cfg-lunch-start').value || '';
+        state.config.lunchEnd = document.getElementById('att-cfg-lunch-end').value || '';
+        state.config.scriptUrl = document.getElementById('att-cfg-script-url').value.trim();
+
+        saveState();
+        showToast('⚙️ Đã lưu cấu hình hệ thống');
+    }
+
+    async function syncToGoogleSheets() {
+        if (!state.config.scriptUrl) return;
+
+        try {
+            const payload = {
+                timestamp: new Date().toISOString(),
+                attRecords: state.attRecords,
+                expRecords: state.expRecords
+            };
+
+            await fetch(state.config.scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            console.log('Synced to Google Sheets (no-cors)');
+        } catch (err) {
+            console.error('Google Sheets Sync Failed:', err);
+        }
+    }
+
+    function setupBackupRestore() {
         document.getElementById('btn-export-backup').addEventListener('click', () => {
             const backupData = {
-                version: "2.0",
-                exportDate: new Date().toISOString(),
-                config: getAppConfig(),
-                employees: getEmployees(),
-                attendance: getAttRecords(),
-                categories: getExpCategories(),
-                transactions: getTransactions()
+                version: '2.0',
+                exportedAt: new Date().toISOString(),
+                state: state
             };
+
             const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Backup_QuanLyPro_${getTodayStr()}.json`;
+            a.download = `QuanLyPro_Backup_${getTodayStr()}.json`;
             a.click();
             URL.revokeObjectURL(url);
-            showToast('Đã xuất file backup dữ liệu');
+            showToast('📤 Đã xuất file sao lưu JSON');
         });
 
-        // Backup JSON Import Restore
         document.getElementById('file-import-backup').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    if (data.employees) setEmployees(data.employees);
-                    if (data.attendance) setAttRecords(data.attendance);
-                    if (data.categories) setExpCategories(data.categories);
-                    if (data.transactions) setTransactions(data.transactions);
-                    if (data.config) setAppConfig(data.config);
 
-                    renderAttAll();
-                    renderExpAll();
-                    showToast('Đã phục hồi dữ liệu thành công!');
-                } catch(err) {
-                    showToast('Lỗi cấu trúc file JSON không hợp lệ');
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (data && data.state) {
+                        state = { ...state, ...data.state };
+                        saveState();
+                        initAppUI();
+                        showToast('📥 Khôi phục dữ liệu thành công!');
+                    } else {
+                        throw new Error('Cấu trúc file không đúng');
+                    }
+                } catch (err) {
+                    alert('Lỗi: File sao lưu không hợp lệ!');
                 }
             };
             reader.readAsText(file);
         });
+    }
 
-        // General Floating Action Button
-        document.getElementById('float-add').addEventListener('click', () => {
-            if (currentModule === 'attendance') {
-                document.querySelector('#module-attendance [data-tab="att-tab-nhap"]').click();
-                document.getElementById('att-input-date').value = getTodayStr();
-            } else {
-                document.querySelector('#module-expense [data-tab="exp-tab-nhap"]').click();
-                document.getElementById('exp-input-date').value = getTodayStr();
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+    // =========================================================================
+    // BINDINGS & APP INITIALIZATION
+    // =========================================================================
 
-        // Tab Navigation Module Attendance
-        document.querySelectorAll('#module-attendance .tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('#module-attendance .tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('#module-attendance .tab-content').forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-                const activeTab = document.getElementById(this.dataset.tab);
-                activeTab.classList.add('active');
-                if (this.dataset.tab === 'att-tab-baocao') generateAttReport();
-            });
-        });
+    function bindEvents() {
+        initTabs();
+        setupOCRScanner();
+        setupBackupRestore();
 
-        // Chấm công Event Listeners
-        document.getElementById('att-search-employee').addEventListener('input', (e) => {
-            renderEmployeeList(e.target.value.trim());
-        });
-        document.getElementById('att-input-date').addEventListener('change', renderTodayAttList);
-
-        document.getElementById('att-btn-cancel-edit').addEventListener('click', cancelEditAttRecord);
-
-        document.getElementById('att-btn-save').addEventListener('click', async () => {
-            const editId = document.getElementById('att-input-edit-id').value;
-            const date = document.getElementById('att-input-date').value;
-            const employee = document.getElementById('att-input-employee').value;
-            const checkin = document.getElementById('att-input-checkin').value;
-            const checkout = document.getElementById('att-input-checkout').value;
-            const note = document.getElementById('att-input-note').value.trim();
-
-            if (!date || !employee) return showToast('Vui lòng chọn ngày và nhân viên');
-            if (checkin && checkout && checkin >= checkout) return showToast('Giờ ra phải sau giờ vào');
-
-            const empObj = getEmployees().find(e => e.code === employee);
-            const employeeName = empObj ? empObj.name : employee;
-
-            let records = getAttRecords();
-
-            if (editId) {
-                records = records.map(r => r.id === editId ? { id: editId, date, employee, employeeName, checkin, checkout, note } : r);
-                setAttRecords(records);
-                cancelEditAttRecord();
-                showToast('Đã cập nhật ca làm!');
-            } else {
-                const record = { id: generateUUID(), date, employee, employeeName, checkin, checkout, note };
-                records.push(record);
-                setAttRecords(records);
-                saveToGoogleSheet(record);
-                document.getElementById('att-input-checkin').value = '';
-                document.getElementById('att-input-checkout').value = '';
-                document.getElementById('att-input-note').value = '';
-                showToast('Đã lưu ca làm!');
-            }
-            renderTodayAttList();
-        });
-
-        document.getElementById('att-btn-refresh').addEventListener('click', renderTodayAttList);
+        // Chấm công Events
+        document.getElementById('att-btn-save').addEventListener('click', saveAttRecord);
+        document.getElementById('att-btn-cancel-edit').addEventListener('click', resetAttForm);
+        document.getElementById('att-btn-refresh').addEventListener('click', renderAttTodayList);
         document.getElementById('att-btn-report').addEventListener('click', generateAttReport);
+        document.getElementById('att-btn-export-csv').addEventListener('click', exportAttCSV);
+        document.getElementById('att-btn-add-employee').addEventListener('click', () => openEditEmployeeModal(null));
+        document.getElementById('att-modal-save-employee').addEventListener('click', saveEmployeeModal);
+        document.getElementById('att-search-employee').addEventListener('input', renderEmployeeList);
+        document.getElementById('att-btn-save-cfg').addEventListener('click', saveConfigUI);
 
-        // CSV Export Chấm Công Safe Against CSV Injection
-        document.getElementById('att-btn-export-csv').addEventListener('click', () => {
-            const data = window._currentAttReport;
-            if (!data) return showToast('Chưa có dữ liệu báo cáo');
-
-            let csvContent = "\uFEFFMã NV,Họ và Tên,Số công,Giờ làm,Đi muộn\n";
-            Object.keys(data.summary).forEach(empCode => {
-                const s = data.summary[empCode];
-                csvContent += `${escapeCsvCell(empCode)},${escapeCsvCell(s.name)},${s.days.toFixed(1)},${s.hours.toFixed(1)},${s.late}\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            const prefix = data.mode === 'week' ? 'Tuan' : 'Thang';
-            link.setAttribute("href", url);
-            link.setAttribute("download", `BaoCao_ChamCong_${prefix}_${data.timeLabel}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            showToast('Đã xuất file thành công!');
-        });
-
-        // Nhân viên Modal Action
-        document.getElementById('att-btn-add-employee').addEventListener('click', () => {
-            document.getElementById('att-modal-edit-index').value = '';
-            document.getElementById('att-modal-employee-title').textContent = 'Thêm nhân viên mới';
-            document.getElementById('att-modal-emp-code').value = '';
-            document.getElementById('att-modal-emp-name').value = '';
-            document.getElementById('att-modal-emp-dept').value = '';
-            document.getElementById('att-employee-modal').classList.add('active');
-        });
-
-        document.getElementById('att-modal-save-employee').addEventListener('click', () => {
-            const code = document.getElementById('att-modal-emp-code').value.trim();
-            const name = document.getElementById('att-modal-emp-name').value.trim();
-            const dept = document.getElementById('att-modal-emp-dept').value.trim();
-            const editIndexStr = document.getElementById('att-modal-edit-index').value;
-
-            if (!code || !name) return showToast('Vui lòng điền đủ Mã và Tên nhân viên');
-
-            const employees = getEmployees();
-            let records = getAttRecords();
-
-            if (editIndexStr === '') {
-                if (employees.some(e => e.code === code)) return showToast('Mã nhân viên đã tồn tại');
-                employees.push({ code, name, dept });
-            } else {
-                const editIndex = parseInt(editIndexStr, 10);
-                const oldCode = employees[editIndex].code;
-
-                // Xử lý Kiểm tra trùng khi chỉnh sửa
-                if (code !== oldCode && employees.some(e => e.code === code)) {
-                    return showToast('Mã mới bị trùng với NV khác');
-                }
-
-                // Cascade Update mã nhân viên trong bản ghi cũ
-                if (code !== oldCode) {
-                    records = records.map(r => r.employee === oldCode ? { ...r, employee: code, employeeName: name } : r);
-                    setAttRecords(records);
-                }
-
-                employees[editIndex] = { code, name, dept };
-            }
-
-            setEmployees(employees);
-            renderAttAll();
-            closeModal('att-employee-modal');
-            showToast('Đã lưu thông tin nhân viên');
-        });
-
-
-        // Module Expense Event Listeners
-        document.querySelectorAll('#module-expense .tab-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('#module-expense .tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('#module-expense .tab-content').forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById(this.dataset.tab).classList.add('active');
-                if (this.dataset.tab === 'exp-tab-baocao') generateExpReport();
-            });
-        });
-
-        document.getElementById('exp-search-category').addEventListener('input', e => {
-            renderExpCategoryList(e.target.value.trim());
-        });
-        document.getElementById('exp-input-date').addEventListener('change', renderTodayExpList);
-
-        document.getElementById('exp-btn-cancel-edit').addEventListener('click', cancelEditTransaction);
-
-        document.getElementById('exp-btn-save').addEventListener('click', () => {
-            const editId = document.getElementById('exp-input-edit-id').value;
-            const date = document.getElementById('exp-input-date').value;
-            const category = document.getElementById('exp-input-category').value;
-            const amount = parseFloat(document.getElementById('exp-input-amount').value);
-            const recipient = document.getElementById('exp-input-recipient').value.trim();
-            const note = document.getElementById('exp-input-note').value.trim();
-
-            if (!date || !category || isNaN(amount) || amount <= 0) {
-                return showToast('Vui lòng nhập ngày, danh mục và số tiền hợp lệ');
-            }
-
-            let txs = getTransactions();
-
-            if (editId) {
-                txs = txs.map(t => t.id === editId ? { id: editId, type: expCurrentType, date, category, amount, recipient, note } : t);
-                setTransactions(txs);
-                cancelEditTransaction();
-                showToast('Đã cập nhật giao dịch!');
-            } else {
-                const tx = { id: generateUUID(), type: expCurrentType, date, category, amount, recipient, note };
-                txs.push(tx);
-                setTransactions(txs);
-                document.getElementById('exp-input-amount').value = '';
-                document.getElementById('exp-input-recipient').value = '';
-                document.getElementById('exp-input-note').value = '';
-                showToast('Đã lưu giao dịch!');
-            }
-            renderTodayExpList();
-        });
-
-        document.getElementById('exp-btn-refresh').addEventListener('click', renderTodayExpList);
+        // Chi tiêu Events
+        document.getElementById('exp-btn-save').addEventListener('click', saveExpRecord);
+        document.getElementById('exp-btn-cancel-edit').addEventListener('click', resetExpForm);
+        document.getElementById('exp-btn-refresh').addEventListener('click', renderExpTodayList);
         document.getElementById('exp-btn-report').addEventListener('click', generateExpReport);
+        document.getElementById('exp-btn-export-csv').addEventListener('click', exportExpCSV);
+        document.getElementById('exp-btn-add-category').addEventListener('click', () => openEditCategoryModal(null));
+        document.getElementById('exp-modal-save-category').addEventListener('click', saveCategoryModal);
+        document.getElementById('exp-search-category').addEventListener('input', renderCategoryList);
 
-        // CSV Export Chi Tiêu
-        document.getElementById('exp-btn-export-csv').addEventListener('click', () => {
-            const data = window._currentExpReport;
-            if (!data) return showToast('Chưa có dữ liệu báo cáo');
-
-            let csvContent = "\uFEFFNgày,Loại,Danh mục,Số tiền,Người nhận/Nội dung,Ghi chú\n";
-            data.transactions.forEach(t => {
-                const cat = data.categories.find(c => c.id === t.category);
-                const catName = cat ? cat.name : '';
-                const typeText = t.type === 'income' ? 'Thu nhập' : 'Chi tiêu';
-                csvContent += `${escapeCsvCell(t.date)},${escapeCsvCell(typeText)},${escapeCsvCell(catName)},${t.amount},${escapeCsvCell(t.recipient || '')},${escapeCsvCell(t.note || '')}\n`;
-            });
-
-            // Thêm dòng tổng vào cuối file CSV
-            csvContent += `\n"TỔNG THU",,,"${data.totalIncome}"\n`;
-            csvContent += `"TỔNG CHI",,,"${data.totalExpense}"\n`;
-            csvContent += `"SỐ DƯ DÒNG TIỀN",,,"${data.balance}"\n`;
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            const prefix = data.mode === 'week' ? 'Tuan' : 'Thang';
-            link.setAttribute("href", url);
-            link.setAttribute("download", `BaoCao_ChiTieu_${prefix}_${data.timeLabel}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            showToast('Đã xuất file thành công!');
-        });
-
-        // Expense Category Modal Handlers
-        document.getElementById('exp-btn-add-category').addEventListener('click', () => {
-            document.getElementById('exp-modal-edit-index').value = '';
-            document.getElementById('exp-modal-category-title').textContent = 'Thêm danh mục mới';
-            document.getElementById('exp-modal-cat-name').value = '';
-            document.getElementById('exp-modal-cat-type').value = 'expense';
-            document.getElementById('exp-category-modal').classList.add('active');
-        });
-
-        document.getElementById('exp-modal-save-category').addEventListener('click', () => {
-            const name = document.getElementById('exp-modal-cat-name').value.trim();
-            const type = document.getElementById('exp-modal-cat-type').value;
-            const editIndex = document.getElementById('exp-modal-edit-index').value;
-
-            if (!name) return showToast('Vui lòng nhập tên danh mục');
-
-            const categories = getExpCategories();
-            if (editIndex === '') {
-                const newId = (type === 'income' ? 'i' : 'c') + Date.now();
-                categories.push({ id: newId, name, type });
+        // Quick Float Button Action
+        document.getElementById('float-add').addEventListener('click', () => {
+            if (state.currentModule === 'attendance') {
+                setNow('att-input-checkin');
+                showToast('⏱️ Đã lấy giờ hiện tại cho Giờ vào');
             } else {
-                categories[parseInt(editIndex, 10)].name = name;
-                categories[parseInt(editIndex, 10)].type = type;
-            }
-
-            setExpCategories(categories);
-            renderExpAll();
-            closeModal('exp-category-modal');
-            showToast('Đã lưu danh mục');
-        });
-
-        // OCR Camera & File Upload Management + Anti Memory-Leak
-        const scanInput = document.getElementById('exp-scan-input');
-        const preview = document.getElementById('exp-scan-preview');
-        const scanArea = document.getElementById('exp-scan-area');
-        const placeholder = document.getElementById('exp-scan-placeholder');
-        let activeObjectUrl = null;
-
-        function clearImagePreview() {
-            expCurrentImageFile = null;
-            if (activeObjectUrl) {
-                URL.revokeObjectURL(activeObjectUrl);
-                activeObjectUrl = null;
-            }
-            preview.src = '';
-            preview.classList.remove('show');
-            placeholder.style.display = 'block';
-            scanArea.classList.remove('has-image');
-            document.getElementById('exp-btn-analyze').style.display = 'none';
-            document.getElementById('exp-btn-clear-image').style.display = 'none';
-            document.getElementById('exp-ocr-status').textContent = '';
-            document.getElementById('exp-ocr-raw').classList.remove('show');
-            scanInput.value = '';
-        }
-
-        function handleImageFile(file) {
-            if (!file || !file.type.startsWith('image/')) {
-                showToast('Vui lòng chọn file ảnh hợp lệ');
-                return;
-            }
-            if (activeObjectUrl) URL.revokeObjectURL(activeObjectUrl);
-
-            expCurrentImageFile = file;
-            activeObjectUrl = URL.createObjectURL(file);
-            preview.src = activeObjectUrl;
-            preview.classList.add('show');
-            placeholder.style.display = 'none';
-            scanArea.classList.add('has-image');
-            document.getElementById('exp-btn-analyze').style.display = 'inline-flex';
-            document.getElementById('exp-btn-clear-image').style.display = 'inline-flex';
-            document.getElementById('exp-ocr-status').textContent = '';
-            document.getElementById('exp-ocr-raw').classList.remove('show');
-        }
-
-        document.getElementById('exp-btn-choose-image').addEventListener('click', () => {
-            scanInput.removeAttribute('capture');
-            scanInput.click();
-        });
-
-        document.getElementById('exp-btn-take-photo').addEventListener('click', () => {
-            scanInput.setAttribute('capture', 'environment');
-            scanInput.click();
-        });
-
-        scanInput.addEventListener('change', e => {
-            if (e.target.files && e.target.files[0]) {
-                handleImageFile(e.target.files[0]);
+                document.getElementById('exp-input-amount').focus();
             }
         });
+    }
 
-        document.getElementById('exp-btn-clear-image').addEventListener('click', clearImagePreview);
+    function initAppUI() {
+        // Init Inputs Date/Week/Month
+        const todayStr = getTodayStr();
+        document.getElementById('att-input-date').value = todayStr;
+        document.getElementById('exp-input-date').value = todayStr;
+        document.getElementById('att-report-week').value = getCurrentWeekStr();
+        document.getElementById('att-report-month').value = getCurrentMonthStr();
+        document.getElementById('exp-report-week').value = getCurrentWeekStr();
+        document.getElementById('exp-report-month').value = getCurrentMonthStr();
 
-        document.getElementById('exp-btn-analyze').addEventListener('click', () => {
-            if (expCurrentImageFile) {
-                analyzeExpImage(expCurrentImageFile);
-            }
-        });
+        // Render Dropdowns & Lists
+        renderEmployeeDropdown();
+        renderCategoryDropdown();
+        renderAttTodayList();
+        renderExpTodayList();
+        renderEmployeeList();
+        renderCategoryList();
+        loadConfigUI();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        bindEvents();
+        initAppUI();
     });
 </script>
 </body>
