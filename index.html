@@ -1,1686 +1,1827 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Quản Lý Pro">
-    <title>Hệ Thống Quản Lý Di Động Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-light: #e0e7ff;
-            --primary-dark: #3730a3;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #06b6d4;
-            --bg-main: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-sub: #64748b;
-            --border: #e2e8f0;
-            --radius-lg: 20px;
-            --radius-md: 12px;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-            --safe-area-top: env(safe-area-inset-top, 0px);
-            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-        }
+<meta charset="UTF-8">
+<!-- #17: bỏ user-scalable=no để đảm bảo accessibility (WCAG) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<title>Hệ Thống Quản Lý Di Động Pro — Chấm Công & Chi Tiêu</title>
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg-main); color: var(--text-main); padding: calc(12px + var(--safe-area-top)) 12px calc(90px + var(--safe-area-bottom)); display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 480px; }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/be-vietnam-pro@latest/vietnamese-400-normal.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/be-vietnam-pro@latest/vietnamese-500-normal.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/be-vietnam-pro@latest/vietnamese-600-normal.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/be-vietnam-pro@latest/vietnamese-700-normal.min.css">
 
-        .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 4px 4px 0; }
-        .app-title { font-size: 22px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-        .app-title span { background: linear-gradient(135deg, var(--primary), #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .version-tag { font-size: 11px; background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+<style>
+:root{
+  --pri:#4f46e5; --pri2:#7c3aed; --pri-soft:#eef2ff;
+  --ok:#16a34a; --ok-soft:#dcfce7;
+  --danger:#dc2626; --danger-soft:#fee2e2;
+  --warn:#d97706; --warn-soft:#fef3c7;
+  --text:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f1f5f9;
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Be Vietnam Pro',system-ui,-apple-system,sans-serif;
+  background:var(--bg); color:var(--text);
+  padding-bottom:calc(84px + env(safe-area-inset-bottom));
+  min-height:100vh;
+}
+button{font-family:inherit}
 
-        .app-switcher { display: flex; background: #0f172a; border-radius: 18px; padding: 4px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(15,23,42,0.15); }
-        .app-switcher-btn { flex: 1; padding: 11px 0; border: none; border-radius: 14px; background: transparent; font-weight: 700; font-size: 14px; color: #94a3b8; transition: all 0.25s; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .app-switcher-btn.active { background: linear-gradient(135deg, var(--primary), #6366f1); color: #ffffff; box-shadow: 0 4px 12px rgba(79,70,229,0.3); }
+/* ===== Header ===== */
+.app-header{
+  position:sticky;top:0;z-index:50;color:#fff;
+  background:linear-gradient(135deg,var(--pri) 0%,var(--pri2) 100%);
+  padding:14px 16px 13px;
+  box-shadow:0 2px 12px rgba(79,70,229,.35);
+}
+.app-header h1{font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px}
+.app-header p{font-size:12px;opacity:.9;margin-top:2px}
 
-        .tab-bar { display: flex; background: #e2e8f0; border-radius: 16px; padding: 4px; margin-bottom: 16px; gap: 4px; }
-        .tab-btn { flex: 1; padding: 10px 0; border: none; border-radius: 12px; background: transparent; font-weight: 600; font-size: 13.5px; color: var(--text-sub); transition: all 0.25s; cursor: pointer; }
-        .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+/* ===== Layout ===== */
+.page{display:none;padding:14px;max-width:660px;margin:0 auto}
+.page.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-        .app-section { display: none; }
-        .app-section.active { display: block; }
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(15,23,42,.06);
+}
+.card h2{
+  font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;
+  margin-bottom:13px;color:var(--text);
+}
+.card h2 .spacer{flex:1}
+.card h3{font-size:13.5px;font-weight:700;margin:14px 0 8px;color:#334155}
 
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.25s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+/* ===== Form ===== */
+.field{margin-bottom:12px}
+.field label{
+  display:block;font-size:12.5px;font-weight:600;color:#475569;margin-bottom:5px;
+}
+input[type=text],input[type=date],input[type=time],input[type=week],input[type=month],
+input[type=number],select,textarea{
+  width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;
+  font:inherit;font-size:14px;background:#fff;color:var(--text);
+  transition:border-color .15s, box-shadow .15s;
+}
+textarea{resize:vertical;min-height:64px}
+input:focus,select:focus,textarea:focus{
+  outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(79,70,229,.15);
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:380px){.grid2{grid-template-columns:1fr}}
+.time-row{display:flex;gap:8px;align-items:center}
+.time-row input{flex:1;min-width:0}
 
-        .card { background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 18px 16px; margin-bottom: 16px; border: 1px solid rgba(226, 232, 240, 0.8); }
-        .card-title { font-weight: 700; font-size: 16px; color: var(--text-main); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+/* ===== Buttons ===== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;
+  cursor:pointer;transition:filter .15s, transform .05s;background:#e2e8f0;color:#334155;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.97)}
+.btn:hover{filter:brightness(1.03)}
+.btn.primary{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;box-shadow:0 3px 10px rgba(79,70,229,.3)}
+.btn.ghost{background:#fff;border:1.5px solid var(--line);color:#475569}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.small{padding:7px 11px;font-size:12.5px;border-radius:8px}
+.btn.block{width:100%}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.icon-btn{
+  border:none;background:#f1f5f9;border-radius:8px;width:32px;height:32px;
+  cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center;
+  transition:background .15s;flex:none;
+}
+.icon-btn:hover{background:#e2e8f0}
+.icon-btn.del:hover{background:var(--danger-soft)}
 
-        .form-group { margin-bottom: 14px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #475569; }
-        .form-control { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-size: 15px; background: #fafafa; color: var(--text-main); transition: all 0.2s; outline: none; -webkit-appearance: none; }
-        .form-control:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12); }
+/* ===== Segmented control ===== */
+.seg{display:inline-flex;background:#eef2f7;border-radius:10px;padding:3px;gap:2px}
+.seg button{
+  border:none;background:transparent;padding:7px 14px;border-radius:8px;
+  font-size:13px;font-weight:600;color:#64748b;cursor:pointer;transition:.15s;
+}
+.seg button.on{background:#fff;color:var(--pri);box-shadow:0 1px 4px rgba(15,23,42,.12)}
 
-        .time-input-group { display: flex; gap: 6px; align-items: center; }
-        .btn-quick-time { padding: 0 10px; height: 46px; border: 1.5px solid var(--border); background: #f1f5f9; border-radius: var(--radius-md); font-size: 12px; font-weight: 600; color: var(--primary); cursor: pointer; white-space: nowrap; }
-        .btn-quick-time:active { background: #e2e8f0; }
+/* ===== List items ===== */
+.item{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:11px 0;border-bottom:1px solid #f1f5f9;
+}
+.item:last-child{border-bottom:none}
+.item-title{font-size:14px;font-weight:600}
+.item-sub{font-size:12.5px;color:var(--muted);margin-top:2px;word-break:break-word}
+.item-actions{display:flex;align-items:center;gap:6px;flex:none}
+.item-right{text-align:right}
+.money{font-weight:700;font-size:14px}
+.money.exp{color:var(--danger)}
+.money.inc{color:var(--ok)}
 
-        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* ===== Badges ===== */
+.badge{
+  display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;
+  background:#e2e8f0;color:#475569;white-space:nowrap;
+}
+.badge.late{background:var(--warn-soft);color:var(--warn)}
+.badge.early{background:#e0f2fe;color:#0284c7}
+.badge.exp{background:var(--danger-soft);color:var(--danger)}
+.badge.inc{background:var(--ok-soft);color:var(--ok)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.badge.pri{background:var(--pri-soft);color:var(--pri)}
+.range-lbl{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.sync-note{font-size:12px;color:var(--muted);margin-top:8px}
+.empty{color:#94a3b8;text-align:center;padding:16px;font-size:13px}
 
-        .segment-control { display: flex; background: #f1f5f9; border-radius: var(--radius-md); padding: 3px; margin-bottom: 14px; border: 1px solid var(--border); }
-        .segment-btn { flex: 1; padding: 8px 0; border: none; border-radius: 8px; background: transparent; font-size: 13px; font-weight: 600; color: var(--text-sub); cursor: pointer; transition: all 0.2s; }
-        .segment-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+/* ===== Table ===== */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.report{width:100%;border-collapse:collapse;font-size:12.8px;min-width:480px}
+table.report th,table.report td{padding:8px 8px;text-align:left;border-bottom:1px solid #f1f5f9;white-space:nowrap}
+table.report th{background:#f8fafc;color:#475569;font-weight:600;position:sticky;top:0}
+table.report td.num,table.report th.num{text-align:right}
+table.report tfoot td{border-top:2px solid var(--line);border-bottom:none;font-weight:700}
 
-        .type-switch { display: flex; gap: 8px; margin-bottom: 14px; }
-        .type-btn { flex: 1; padding: 12px; border: 1.5px solid var(--border); border-radius: var(--radius-md); background: #fafafa; font-weight: 600; font-size: 14px; color: var(--text-sub); cursor: pointer; transition: all 0.2s; }
-        .type-btn.active-income { background: #dcfce7; border-color: #86efac; color: #15803d; }
-        .type-btn.active-expense { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+/* ===== Stats chips ===== */
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.stat{
+  flex:1;min-width:100px;background:#f8fafc;border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;
+}
+.stat .lbl{font-size:11.5px;color:var(--muted);font-weight:600}
+.stat .val{font-size:16px;font-weight:700;margin-top:3px}
+.stat .val.exp{color:var(--danger)} .stat .val.inc{color:var(--ok)}
 
-        .btn { padding: 12px 20px; border: none; border-radius: var(--radius-md); font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), #6366f1); color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); }
-        .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
-        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); }
-        .btn-danger { background: #fee2e2; color: var(--danger); }
-        .btn-danger:active { background: #fca5a5; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
-        .btn-outline:active { background: #f1f5f9; }
-        .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
-        .btn-block { width: 100%; }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+/* ===== OCR ===== */
+.thumb{position:relative;margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{display:block;width:100%;max-height:200px;object-fit:cover}
+.thumb .clear{
+  position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;
+  border:none;background:rgba(15,23,42,.7);color:#fff;cursor:pointer;font-size:13px;
+}
+.progress{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:10px;opacity:0;transition:opacity .2s}
+.progress.show{opacity:1}
+.progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pri),var(--pri2));transition:width .2s}
+.ocr-status{font-size:12px;color:var(--muted);margin-top:6px}
+.ocr-result{margin-top:12px;background:#f8fafc;border:1px dashed var(--line);border-radius:12px;padding:12px;font-size:13px}
+.ocr-result .row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.ocr-result .row b{font-weight:600;color:#334155;flex:none}
+.hint{font-size:11.5px;color:#94a3b8;margin-top:6px;line-height:1.5}
 
-        .table-wrap { overflow-x: auto; margin-top: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-        th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-        th { background: #f8fafc; font-weight: 600; color: var(--text-sub); }
-        tr:last-child td { border-bottom: none; }
+/* ===== Switch ===== */
+.switch{position:relative;display:inline-block;width:44px;height:25px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{
+  position:absolute;inset:0;background:#cbd5e1;border-radius:99px;cursor:pointer;transition:.2s;
+}
+.switch .slider::before{
+  content:"";position:absolute;width:19px;height:19px;left:3px;top:3px;
+  background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25);
+}
+.switch input:checked + .slider{background:var(--pri)}
+.switch input:checked + .slider::before{transform:translateX(19px)}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0}
+.switch-row .lbl{font-size:13.5px;font-weight:600}
+.switch-row .sub{font-size:11.5px;color:var(--muted);margin-top:1px}
 
-        .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .badge-x { background: #dcfce7; color: #15803d; }
-        .badge-n { background: #fef3c7; color: #b45309; }
-        .badge-dm { background: #fee2e2; color: #b91c1c; }
-        .badge-kp { background: #f1f5f9; color: #475569; }
-        .badge-other { background: #f3e8ff; color: #6b21a8; }
-        .badge-income { background: #dcfce7; color: #15803d; }
-        .badge-expense { background: #fee2e2; color: #b91c1c; }
+/* ===== Edit banner ===== */
+.edit-badge{
+  display:none;align-items:center;gap:8px;background:var(--warn-soft);color:var(--warn);
+  border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:600;margin-bottom:12px;
+}
+.edit-badge.show{display:flex}
+.edit-badge button{margin-left:auto;border:none;background:transparent;color:var(--warn);font-weight:700;cursor:pointer;font-size:13px}
 
-        .cat-chip { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 4px; }
-        .cat-chip.income { background: #dcfce7; color: #15803d; }
-        .cat-chip.expense { background: #fee2e2; color: #b91c1c; }
+/* ===== Bottom nav ===== */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;background:#fff;
+  border-top:1px solid var(--line);display:flex;
+  padding-bottom:env(safe-area-inset-bottom);
+  box-shadow:0 -4px 16px rgba(15,23,42,.06);
+}
+.nav-btn{
+  flex:1;border:none;background:transparent;padding:8px 2px 7px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:10.5px;font-weight:600;color:#94a3b8;transition:color .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.nav-btn .ico{font-size:20px;line-height:1;filter:grayscale(.6);transition:.15s}
+.nav-btn.active{color:var(--pri)}
+.nav-btn.active .ico{filter:none;transform:translateY(-1px)}
 
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .list-item:last-child { border-bottom: none; }
-        .emp-name, .item-name { font-weight: 600; font-size: 14px; }
-        .emp-sub, .item-sub { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-        .item-amount { font-weight: 700; font-size: 14px; }
-        .item-amount.income { color: #15803d; }
-        .item-amount.expense { color: #b91c1c; }
+/* ===== Modal ===== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:18px;
+  backdrop-filter:blur(2px);
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:#fff;border-radius:18px;width:100%;max-width:460px;max-height:86vh;
+  overflow:auto;animation:slideUp .22s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:16px 18px 0;position:sticky;top:0;background:#fff;
+}
+.modal-head h3{font-size:16px;font-weight:700}
+.modal-close{
+  border:none;background:#f1f5f9;border-radius:50%;width:32px;height:32px;
+  cursor:pointer;font-size:14px;color:#64748b;flex:none;
+}
+.modal-body{padding:16px 18px 20px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+.confirm-msg{font-size:14px;line-height:1.6;color:#334155}
 
-        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
-        .summary-item { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 8px; text-align: center; }
-        .summary-item .number { font-size: 15px; font-weight: 700; }
-        .summary-item .number.income { color: #15803d; }
-        .summary-item .number.expense { color: #b91c1c; }
-        .summary-item .number.balance { color: var(--primary); }
-        .summary-item .label { font-size: 11px; font-weight: 500; color: var(--text-sub); margin-top: 2px; }
+/* ===== Toast ===== */
+.toast{
+  position:fixed;bottom:calc(96px + env(safe-area-inset-bottom));left:50%;
+  transform:translateX(-50%) translateY(8px);background:#0f172a;color:#fff;
+  padding:10px 18px;border-radius:99px;font-size:13.5px;font-weight:500;z-index:200;
+  opacity:0;pointer-events:none;transition:.25s;max-width:92vw;text-align:center;
+  box-shadow:0 6px 20px rgba(0,0,0,.3);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--danger)}
+.toast.ok{background:var(--ok)}
 
-        .empty-state { color: var(--text-sub); text-align: center; padding: 24px 0; font-size: 13px; }
-        .info-text { font-size: 12px; color: var(--text-sub); margin-top: 6px; text-align: center; font-style: italic; }
-
-        .scan-area { border: 2px dashed var(--border); border-radius: var(--radius-md); padding: 16px; text-align: center; background: #fafafa; margin-bottom: 14px; transition: all 0.2s; }
-        .scan-area.has-image { border-style: solid; border-color: var(--primary); background: #f8fafc; }
-        .scan-preview { max-width: 100%; max-height: 180px; border-radius: 10px; margin: 10px auto; display: none; object-fit: contain; }
-        .scan-preview.show { display: block; }
-        .scan-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
-        .ocr-status { font-size: 13px; color: var(--text-sub); margin-top: 8px; min-height: 20px; }
-        .ocr-status.loading { color: var(--primary); }
-        .ocr-status.success { color: var(--success); }
-        .ocr-status.error { color: var(--danger); }
-        .ocr-raw { margin-top: 10px; padding: 10px; background: #f1f5f9; border-radius: 8px; font-size: 11px; color: #475569; max-height: 120px; overflow-y: auto; white-space: pre-wrap; display: none; text-align: left; }
-        .ocr-raw.show { display: block; }
-        .progress-bar { height: 4px; background: #e2e8f0; border-radius: 4px; margin-top: 8px; overflow: hidden; display: none; }
-        .progress-bar.show { display: block; }
-        .progress-bar .bar { height: 100%; background: linear-gradient(90deg, var(--primary), #818cf8); width: 0%; transition: width 0.3s; }
-
-        .float-action { position: fixed; bottom: calc(20px + var(--safe-area-bottom)); right: 20px; background: linear-gradient(135deg, var(--primary), #6366f1); color: white; border: none; border-radius: 50px; padding: 14px 22px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.35); z-index: 40; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .float-action:active { transform: scale(0.95); }
-
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 50; padding: 16px; }
-        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
-        .modal { background: white; border-radius: var(--radius-lg); padding: 20px; max-width: 400px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .modal-header h3 { font-size: 18px; color: var(--text-main); font-weight: 700; }
-        .modal-close { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-        .toast { position: fixed; bottom: calc(85px + var(--safe-area-bottom)); left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: white; padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 500; z-index: 60; opacity: 0; transition: all 0.3s; pointer-events: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); text-align: center; max-width: 90%; }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    </style>
+.settings-note{
+  background:var(--pri-soft);border-radius:10px;padding:10px 12px;
+  font-size:12.5px;color:#3730a3;line-height:1.55;margin-top:10px;
+}
+</style>
 </head>
 <body>
 
-<div class="container" id="app">
+<header class="app-header">
+  <h1>📱 Hệ Thống Quản Lý Di Động Pro</h1>
+  <p>⏱️ Chấm Công & 💰 Chi Tiêu — Offline, dữ liệu lưu trên thiết bị</p>
+</header>
 
-    <div class="app-header">
-        <div class="app-title" id="main-header-title">⏱️ <span>Quản Lý Pro</span></div>
-        <span class="version-tag">v2.0 Full Pro</span>
+<main>
+
+<!-- ==================== TAB CHẤM CÔNG ==================== -->
+<section class="page" data-page="att">
+
+  <div class="card">
+    <h2>📝 Ghi nhận ca làm</h2>
+    <div class="edit-badge" id="attEditBadge">
+      <span>✏️ Đang sửa bản ghi</span>
+      <button type="button" id="attCancelEdit">Huỷ sửa</button>
     </div>
-
-    <div class="app-switcher">
-        <button type="button" class="app-switcher-btn active" id="app-switch-attendance" onclick="switchAppModule('attendance')">
-            ⏱️ Chấm Công
-        </button>
-        <button type="button" class="app-switcher-btn" id="app-switch-expense" onclick="switchAppModule('expense')">
-            💰 Chi Tiêu
-        </button>
+    <div class="grid2">
+      <div class="field">
+        <label for="attDate">Ngày chấm công</label>
+        <input type="date" id="attDate">
+      </div>
+      <div class="field">
+        <label for="attEmp">Nhân viên</label>
+        <select id="attEmp"></select>
+      </div>
     </div>
-
-    <!-- ==================== MODULE 1: CHẤM CÔNG ==================== -->
-    <div id="module-attendance" class="app-section active">
-        <div class="tab-bar">
-            <button type="button" class="tab-btn active" data-tab="att-tab-nhap">Nhập công</button>
-            <button type="button" class="tab-btn" data-tab="att-tab-baocao">Báo cáo</button>
-            <button type="button" class="tab-btn" data-tab="att-tab-nhanvien">Nhân viên</button>
-            <button type="button" class="tab-btn" data-tab="att-tab-caidat">Cấu hình</button>
+    <div class="grid2">
+      <div class="field">
+        <label for="attIn">Giờ vào</label>
+        <div class="time-row">
+          <input type="time" id="attIn">
+          <button type="button" class="btn ghost small" id="attNowIn">Hiện tại</button>
         </div>
-
-        <!-- Tab 1.1: Nhập Chấm công -->
-        <div id="att-tab-nhap" class="tab-content active">
-            <div class="card">
-                <div class="card-title"><span id="att-form-title">📝 Ghi nhận ca làm</span></div>
-                <input type="hidden" id="att-input-edit-id" value="">
-                <div class="form-group">
-                    <label for="att-input-date">Ngày chấm công</label>
-                    <input type="date" class="form-control" id="att-input-date">
-                </div>
-                <div class="form-group">
-                    <label for="att-input-employee">Chọn nhân viên</label>
-                    <select class="form-control" id="att-input-employee"></select>
-                </div>
-                <div class="row-2">
-                    <div class="form-group">
-                        <label for="att-input-checkin">Giờ vào</label>
-                        <div class="time-input-group">
-                            <input type="time" class="form-control" id="att-input-checkin">
-                            <button type="button" class="btn-quick-time" onclick="setNow('att-input-checkin')">Hiện tại</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="att-input-checkout">Giờ ra</label>
-                        <div class="time-input-group">
-                            <input type="time" class="form-control" id="att-input-checkout">
-                            <button type="button" class="btn-quick-time" onclick="setNow('att-input-checkout')">Hiện tại</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="att-input-note">Ghi chú / Lý do</label>
-                    <input type="text" class="form-control" id="att-input-note" placeholder="VD: Đi công tác, Nghỉ phép...">
-                </div>
-                <button type="button" class="btn btn-primary btn-block" id="att-btn-save">Lưu dữ liệu ca làm</button>
-                <button type="button" class="btn btn-outline btn-block" id="att-btn-cancel-edit" style="display:none; margin-top:8px;">Hủy sửa</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">
-                    <span>📋 Danh sách trong ngày</span>
-                    <button type="button" class="btn btn-sm btn-outline" id="att-btn-refresh">⟳ Tải lại</button>
-                </div>
-                <div id="att-today-list"></div>
-            </div>
+      </div>
+      <div class="field">
+        <label for="attOut">Giờ ra</label>
+        <div class="time-row">
+          <input type="time" id="attOut">
+          <button type="button" class="btn ghost small" id="attNowOut">Hiện tại</button>
         </div>
-
-        <!-- Tab 1.2: Báo cáo Chấm công -->
-        <div id="att-tab-baocao" class="tab-content">
-            <div class="card">
-                <div class="card-title">📊 Tổng hợp báo cáo chấm công</div>
-                
-                <div class="segment-control">
-                    <button type="button" class="segment-btn active" id="att-mode-week-btn" onclick="switchAttReportMode('week')">Theo Tuần</button>
-                    <button type="button" class="segment-btn" id="att-mode-month-btn" onclick="switchAttReportMode('month')">Theo Tháng</button>
-                </div>
-
-                <div class="form-group" id="att-group-filter-week">
-                    <label for="att-report-week">Chọn tuần báo cáo</label>
-                    <input type="week" class="form-control" id="att-report-week">
-                </div>
-
-                <div class="form-group" id="att-group-filter-month" style="display: none;">
-                    <label for="att-report-month">Chọn tháng báo cáo</label>
-                    <input type="month" class="form-control" id="att-report-month">
-                </div>
-
-                <button type="button" class="btn btn-primary btn-block" id="att-btn-report">Tổng hợp dữ liệu</button>
-                <div class="info-text" id="att-report-range-info"></div>
-                
-                <div id="att-report-summary" class="summary-grid"></div>
-                <div id="att-report-detail"></div>
-                
-                <button type="button" class="btn btn-success btn-block" id="att-btn-export-csv" style="margin-top: 14px;">📥 Xuất File CSV (Excel)</button>
-            </div>
-        </div>
-
-        <!-- Tab 1.3: Quản lý Nhân viên -->
-        <div id="att-tab-nhanvien" class="tab-content">
-            <div class="card">
-                <div class="card-title">
-                    <span>👥 Quản lý nhân sự</span>
-                    <button type="button" class="btn btn-sm btn-primary" id="att-btn-add-employee">+ Thêm NV</button>
-                </div>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="att-search-employee" placeholder="🔍 Tìm kiếm theo tên hoặc mã...">
-                </div>
-                <div id="att-employee-list"></div>
-            </div>
-        </div>
-
-        <!-- Tab 1.4: Cấu hình Ca & Giờ Chuẩn -->
-        <div id="att-tab-caidat" class="tab-content">
-            <div class="card">
-                <div class="card-title">⚙️ Cấu hình Ca & Đồng bộ</div>
-                <div class="form-group">
-                    <label for="att-cfg-stdin">Giờ vào chuẩn (Kiểm tra đi muộn)</label>
-                    <input type="time" class="form-control" id="att-cfg-stdin">
-                </div>
-                <div class="row-2">
-                    <div class="form-group">
-                        <label for="att-cfg-lunch-start">Bắt đầu nghỉ trưa</label>
-                        <input type="time" class="form-control" id="att-cfg-lunch-start">
-                    </div>
-                    <div class="form-group">
-                        <label for="att-cfg-lunch-end">Kết thúc nghỉ trưa</label>
-                        <input type="time" class="form-control" id="att-cfg-lunch-end">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="att-cfg-script-url">Google Apps Script Web App URL</label>
-                    <input type="text" class="form-control" id="att-cfg-script-url" placeholder="https://script.google.com/macros/s/.../exec">
-                </div>
-                <button type="button" class="btn btn-primary btn-block" id="att-btn-save-cfg">Lưu cấu hình</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">💾 Backup & Restore Dữ Liệu</div>
-                <button type="button" class="btn btn-outline btn-block" id="btn-export-backup" style="margin-bottom: 8px;">📤 Xuất Backup (JSON)</button>
-                <button type="button" class="btn btn-outline btn-block" onclick="document.getElementById('file-import-backup').click()">📥 Nhập Phục Hồi Dữ Liệu</button>
-                <input type="file" id="file-import-backup" accept=".json" style="display:none">
-            </div>
-        </div>
+      </div>
     </div>
-
-
-    <!-- ==================== MODULE 2: CHI TIÊU ==================== -->
-    <div id="module-expense" class="app-section">
-        <div class="tab-bar">
-            <button type="button" class="tab-btn active" data-tab="exp-tab-nhap">Nhập liệu</button>
-            <button type="button" class="tab-btn" data-tab="exp-tab-baocao">Báo cáo</button>
-            <button type="button" class="tab-btn" data-tab="exp-tab-danhmuc">Danh mục</button>
-        </div>
-
-        <!-- Tab 2.1: Nhập Chi Tiêu & OCR Scan -->
-        <div id="exp-tab-nhap" class="tab-content active">
-            <div class="card">
-                <div class="card-title">📷 Quét hóa đơn / Biên lai ngân hàng</div>
-                <div class="scan-area" id="exp-scan-area">
-                    <div id="exp-scan-placeholder">
-                        <div style="font-size:28px;margin-bottom:6px;">📄</div>
-                        <div style="font-size:13px;color:var(--text-sub);">Chụp hoặc chọn ảnh biên lai chuyển khoản</div>
-                        <div style="font-size:11px;color:var(--text-sub);margin-top:4px;">Hỗ trợ ảnh từ Vietcombank, Techcombank, MB, BIDV, VPBank...</div>
-                    </div>
-                    <img id="exp-scan-preview" class="scan-preview" alt="Preview">
-                    <input type="file" id="exp-scan-input" accept="image/*" style="display:none">
-                    <div class="scan-actions">
-                        <button type="button" class="btn btn-outline btn-sm" id="exp-btn-choose-image">📁 Chọn ảnh</button>
-                        <button type="button" class="btn btn-outline btn-sm" id="exp-btn-take-photo">📸 Chụp ảnh</button>
-                        <button type="button" class="btn btn-primary btn-sm" id="exp-btn-analyze" style="display:none;">🔍 Phân tích</button>
-                        <button type="button" class="btn btn-danger btn-sm" id="exp-btn-clear-image" style="display:none;">✕ Xóa</button>
-                    </div>
-                    <div class="progress-bar" id="exp-ocr-progress"><div class="bar" id="exp-ocr-bar"></div></div>
-                    <div class="ocr-status" id="exp-ocr-status"></div>
-                    <div class="ocr-raw" id="exp-ocr-raw"></div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title"><span id="exp-form-title">📝 Ghi nhận giao dịch</span></div>
-                <input type="hidden" id="exp-input-edit-id" value="">
-
-                <div class="type-switch">
-                    <button type="button" class="type-btn active-expense" id="exp-type-expense" onclick="setExpType('expense')">Chi tiêu</button>
-                    <button type="button" class="type-btn" id="exp-type-income" onclick="setExpType('income')">Thu nhập</button>
-                </div>
-
-                <div class="form-group">
-                    <label for="exp-input-date">Ngày giao dịch</label>
-                    <input type="date" class="form-control" id="exp-input-date">
-                </div>
-
-                <div class="form-group">
-                    <label for="exp-input-category">Danh mục</label>
-                    <select class="form-control" id="exp-input-category"></select>
-                </div>
-
-                <div class="form-group">
-                    <label for="exp-input-amount">Số tiền (VNĐ)</label>
-                    <input type="number" class="form-control" id="exp-input-amount" placeholder="VD: 50000" min="0" step="1000">
-                </div>
-
-                <div class="form-group">
-                    <label for="exp-input-recipient">Người nhận / Nội dung</label>
-                    <input type="text" class="form-control" id="exp-input-recipient" placeholder="Tên người nhận hoặc nội dung CK">
-                </div>
-
-                <div class="form-group">
-                    <label for="exp-input-note">Ghi chú thêm</label>
-                    <input type="text" class="form-control" id="exp-input-note" placeholder="Ghi chú bổ sung (nếu có)">
-                </div>
-
-                <button type="button" class="btn btn-primary btn-block" id="exp-btn-save">Lưu giao dịch</button>
-                <button type="button" class="btn btn-outline btn-block" id="exp-btn-cancel-edit" style="display:none; margin-top:8px;">Hủy sửa</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">
-                    <span>📋 Giao dịch trong ngày</span>
-                    <button type="button" class="btn btn-sm btn-outline" id="exp-btn-refresh">⟳ Tải lại</button>
-                </div>
-                <div id="exp-today-list"></div>
-            </div>
-        </div>
-
-        <!-- Tab 2.2: Báo cáo Chi tiêu -->
-        <div id="exp-tab-baocao" class="tab-content">
-            <div class="card">
-                <div class="card-title">📊 Tổng hợp báo cáo chi tiêu</div>
-
-                <div class="segment-control">
-                    <button type="button" class="segment-btn active" id="exp-mode-week-btn" onclick="switchExpReportMode('week')">Theo Tuần</button>
-                    <button type="button" class="segment-btn" id="exp-mode-month-btn" onclick="switchExpReportMode('month')">Theo Tháng</button>
-                </div>
-
-                <div class="form-group" id="exp-group-filter-week">
-                    <label for="exp-report-week">Chọn tuần báo cáo</label>
-                    <input type="week" class="form-control" id="exp-report-week">
-                </div>
-
-                <div class="form-group" id="exp-group-filter-month" style="display: none;">
-                    <label for="exp-report-month">Chọn tháng báo cáo</label>
-                    <input type="month" class="form-control" id="exp-report-month">
-                </div>
-
-                <button type="button" class="btn btn-primary btn-block" id="exp-btn-report">Tổng hợp dữ liệu</button>
-                <div class="info-text" id="exp-report-range-info"></div>
-
-                <div id="exp-report-summary" class="summary-grid"></div>
-                <div id="exp-report-income-detail" style="margin-top: 16px;"></div>
-                <div id="exp-report-expense-detail" style="margin-top: 16px;"></div>
-                <div id="exp-report-list" style="margin-top: 16px;"></div>
-
-                <button type="button" class="btn btn-success btn-block" id="exp-btn-export-csv" style="margin-top: 14px;">📥 Xuất File CSV (Excel)</button>
-            </div>
-        </div>
-
-        <!-- Tab 2.3: Danh mục Chi tiêu -->
-        <div id="exp-tab-danhmuc" class="tab-content">
-            <div class="card">
-                <div class="card-title">
-                    <span>🏷️ Quản lý danh mục</span>
-                    <button type="button" class="btn btn-sm btn-primary" id="exp-btn-add-category">+ Thêm</button>
-                </div>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="exp-search-category" placeholder="🔍 Tìm theo tên danh mục...">
-                </div>
-                <div id="exp-category-list"></div>
-            </div>
-        </div>
+    <div class="field">
+      <label for="attNote">Ghi chú / Lý do</label>
+      <textarea id="attNote" placeholder="VD: tăng ca, đi công tác..."></textarea>
     </div>
+    <button type="button" class="btn primary block" id="attSaveBtn">💾 Lưu dữ liệu ca làm</button>
+    <div class="sync-note" id="syncPendingInfo"></div>
+  </div>
 
+  <div class="card">
+    <h2>📋 Danh sách trong ngày <span class="spacer"></span>
+      <button type="button" class="btn ghost small" id="attListReload">⟳ Tải lại</button>
+    </h2>
+    <div class="field">
+      <label for="attListDate">Chọn ngày</label>
+      <input type="date" id="attListDate">
+    </div>
+    <div id="attListBody"></div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Tổng hợp báo cáo chấm công</h2>
+    <div class="seg" style="margin-bottom:12px">
+      <button type="button" id="attRangeWeek" class="on">Theo Tuần</button>
+      <button type="button" id="attRangeMonth">Theo Tháng</button>
+    </div>
+    <div class="field" id="attWeekWrap">
+      <label for="attWeekInput">Chọn tuần báo cáo</label>
+      <input type="week" id="attWeekInput">
+    </div>
+    <div class="field" id="attMonthWrap" style="display:none">
+      <label for="attMonthInput">Chọn tháng báo cáo</label>
+      <input type="month" id="attMonthInput">
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn primary" id="attRunBtn">Tổng hợp dữ liệu</button>
+      <button type="button" class="btn ghost" id="attCsvBtn">📥 Xuất File CSV (Excel)</button>
+    </div>
+    <div id="attReportOut" style="margin-top:14px"></div>
+  </div>
+</section>
+
+<!-- ==================== TAB CHI TIÊU ==================== -->
+<section class="page" data-page="exp">
+
+  <div class="card">
+    <h2>📷 Quét hóa đơn / Biên lai ngân hàng</h2>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px">
+      📄 Chụp hoặc chọn ảnh biên lai chuyển khoản. Hỗ trợ ảnh từ Vietcombank, Techcombank, MB, BIDV, VPBank...
+    </p>
+    <div class="btn-row">
+      <button type="button" class="btn ghost" id="ocrPickBtn">📁 Chọn ảnh</button>
+      <button type="button" class="btn ghost" id="ocrCamBtn">📸 Chụp ảnh</button>
+      <button type="button" class="btn primary" id="ocrRunBtn">🔍 Phân tích</button>
+    </div>
+    <input type="file" id="ocrFile" accept="image/*" hidden>
+    <input type="file" id="ocrCamFile" accept="image/*" capture="environment" hidden>
+    <div class="thumb" id="ocrPreviewWrap" style="display:none">
+      <img id="ocrPreviewImg" alt="Xem trước biên lai">
+      <button type="button" class="clear" id="ocrClearBtn" aria-label="Xoá ảnh">✕</button>
+    </div>
+    <div class="progress" id="ocrProgress"><span id="ocrProgressBar"></span></div>
+    <div class="ocr-status" id="ocrProgressText"></div>
+    <div id="ocrResult"></div>
+    <p class="hint">⚠️ Kết quả OCR chỉ mang tính tham khảo — chất lượng phụ thuộc ảnh chụp. Vui lòng kiểm tra lại số tiền trước khi lưu.</p>
+  </div>
+
+  <div class="card">
+    <h2>📝 Ghi nhận giao dịch</h2>
+    <div class="edit-badge" id="txEditBadge">
+      <span>✏️ Đang sửa giao dịch</span>
+      <button type="button" id="txCancelEdit">Huỷ sửa</button>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="txType">Loại giao dịch</label>
+        <select id="txType">
+          <option value="expense">Chi tiêu</option>
+          <option value="income">Thu nhập</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="txDate">Ngày giao dịch</label>
+        <input type="date" id="txDate">
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="txCat">Danh mục</label>
+        <select id="txCat"></select>
+      </div>
+      <div class="field">
+        <label for="txAmount">Số tiền (VNĐ)</label>
+        <input type="number" id="txAmount" inputmode="numeric" min="0" step="1000" placeholder="0">
+      </div>
+    </div>
+    <div class="field">
+      <label for="txParty">Người nhận / Nội dung</label>
+      <input type="text" id="txParty" placeholder="VD: Nguyễn Văn A - chuyển khoản">
+    </div>
+    <div class="field">
+      <label for="txNote">Ghi chú thêm</label>
+      <textarea id="txNote"></textarea>
+    </div>
+    <button type="button" class="btn primary block" id="txSaveBtn">💾 Lưu giao dịch</button>
+  </div>
+
+  <div class="card">
+    <h2>📋 Giao dịch trong ngày <span class="spacer"></span>
+      <button type="button" class="btn ghost small" id="txListReload">⟳ Tải lại</button>
+    </h2>
+    <div class="field">
+      <label for="txListDate">Chọn ngày</label>
+      <input type="date" id="txListDate">
+    </div>
+    <div id="txListBody"></div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Tổng hợp báo cáo chi tiêu</h2>
+    <div class="seg" style="margin-bottom:12px">
+      <button type="button" id="expRangeWeek" class="on">Theo Tuần</button>
+      <button type="button" id="expRangeMonth">Theo Tháng</button>
+    </div>
+    <div class="field" id="expWeekWrap">
+      <label for="expWeekInput">Chọn tuần báo cáo</label>
+      <input type="week" id="expWeekInput">
+    </div>
+    <div class="field" id="expMonthWrap" style="display:none">
+      <label for="expMonthInput">Chọn tháng báo cáo</label>
+      <input type="month" id="expMonthInput">
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn primary" id="expRunBtn">Tổng hợp dữ liệu</button>
+      <button type="button" class="btn ghost" id="expCsvBtn">📥 Xuất File CSV (Excel)</button>
+    </div>
+    <div id="expReportOut" style="margin-top:14px"></div>
+  </div>
+</section>
+
+<!-- ==================== TAB NHÂN SỰ ==================== -->
+<section class="page" data-page="emp">
+  <div class="card">
+    <h2>👥 Quản lý nhân sự <span class="spacer"></span>
+      <button type="button" class="btn primary small" id="empAddToggle">＋ Thêm NV</button>
+    </h2>
+    <div id="empFormWrap" style="display:none;border-top:1px solid var(--line);padding-top:14px">
+      <div class="edit-badge" id="empEditBadge">
+        <span>✏️ Đang sửa nhân viên</span>
+        <button type="button" id="empCancelEdit">Huỷ sửa</button>
+      </div>
+      <div class="field">
+        <label for="empCode">Mã nhân viên</label>
+        <input type="text" id="empCode" placeholder="VD: NV01">
+      </div>
+      <div class="field">
+        <label for="empName">Họ và tên</label>
+        <input type="text" id="empName" placeholder="VD: Nguyễn Văn An">
+      </div>
+      <div class="field">
+        <label for="empDept">Bộ phận / Phòng ban</label>
+        <input type="text" id="empDept" placeholder="VD: Kinh doanh">
+      </div>
+      <button type="button" class="btn primary block" id="empSaveBtn">💾 Lưu thông tin</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>📋 Danh sách nhân viên</h2>
+    <div id="empList"></div>
+  </div>
+</section>
+
+<!-- ==================== TAB DANH MỤC ==================== -->
+<section class="page" data-page="cat">
+  <div class="card">
+    <h2>🏷️ Quản lý danh mục</h2>
+    <div class="edit-badge" id="catEditBadge">
+      <span>✏️ Đang sửa danh mục</span>
+      <button type="button" id="catCancelEdit">Huỷ sửa</button>
+    </div>
+    <div class="field">
+      <label for="catName">Tên danh mục</label>
+      <input type="text" id="catName" placeholder="VD: Ăn uống, Xăng xe...">
+    </div>
+    <div class="field">
+      <label for="catType">Loại</label>
+      <select id="catType">
+        <option value="expense">Chi tiêu</option>
+        <option value="income">Thu nhập</option>
+      </select>
+    </div>
+    <button type="button" class="btn primary block" id="catSaveBtn">💾 Lưu danh mục</button>
+    <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
+      <label for="catQuickName" style="font-size:12.5px;font-weight:600;color:#475569;display:block;margin-bottom:5px">⚡ Thêm nhanh (mặc định loại Chi tiêu)</label>
+      <div class="time-row">
+        <input type="text" id="catQuickName" placeholder="Tên danh mục mới">
+        <button type="button" class="btn ghost" id="catQuickBtn">Thêm</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>📋 Danh sách danh mục</h2>
+    <div id="catList"></div>
+  </div>
+</section>
+
+<!-- ==================== TAB CÀI ĐẶT ==================== -->
+<section class="page" data-page="set">
+
+  <div class="card">
+    <h2>⏰ Giờ chuẩn & Nghỉ trưa</h2>
+    <div class="grid2">
+      <div class="field">
+        <label for="setStdIn">Giờ vào chuẩn</label>
+        <input type="time" id="setStdIn">
+      </div>
+      <div class="field">
+        <label for="setStdOut">Giờ ra chuẩn</label>
+        <input type="time" id="setStdOut">
+      </div>
+    </div>
+    <div class="switch-row">
+      <div>
+        <div class="lbl">Tự động trừ giờ nghỉ trưa</div>
+        <div class="sub">Chỉ trừ khi ca làm trùng khung giờ nghỉ bên dưới</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="setBreakOn"><span class="slider"></span></label>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="setBreakStart">Khung nghỉ bắt đầu</label>
+        <input type="time" id="setBreakStart">
+      </div>
+      <div class="field">
+        <label for="setBreakEnd">Khung nghỉ kết thúc</label>
+        <input type="time" id="setBreakEnd">
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="setBreakMin">Số phút trừ</label>
+        <input type="number" id="setBreakMin" min="0" step="5">
+      </div>
+      <div class="field">
+        <label for="setBreakThresh">Chỉ trừ khi ca ≥ (giờ)</label>
+        <input type="number" id="setBreakThresh" min="0" step="0.5">
+      </div>
+    </div>
+    <button type="button" class="btn primary block" id="setSaveBtn">💾 Lưu cài đặt</button>
+  </div>
+
+  <div class="card">
+    <h2>☁️ Đồng bộ Google Apps Script (tuỳ chọn)</h2>
+    <div class="switch-row">
+      <div>
+        <div class="lbl">Bật đồng bộ chấm công</div>
+        <div class="sub">Gửi bản ghi mới tới Web App URL khi lưu</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="setSyncOn"><span class="slider"></span></label>
+    </div>
+    <div class="field">
+      <label for="setSyncUrl">Web App URL</label>
+      <input type="text" id="setSyncUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn primary" id="setSyncSaveBtn">💾 Lưu</button>
+      <button type="button" class="btn ghost" id="syncFlushBtn">📤 Gửi hàng chờ (<span id="syncQueueCount">0</span>)</button>
+    </div>
+    <div class="settings-note">
+      ℹ️ <b>Lưu ý trung thực:</b> Trình duyệt gửi ở chế độ <code>no-cors</code> nên <b>không thể xác nhận</b> máy chủ đã lưu thành công hay chưa. Trạng thái "đã gửi" chỉ nghĩa là đã chuyển yêu cầu đi. URL nên được coi là thông tin nhạy cảm — nếu nghi ngờ lộ, hãy tạo lại Web App mới. Khi không có mạng, bản ghi sẽ nằm trong hàng chờ để gửi lại.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💾 Sao lưu & Khôi phục</h2>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;line-height:1.55">
+      Toàn bộ dữ liệu lưu trong bộ nhớ cục bộ của trình duyệt. Nếu xoá dữ liệu duyệt web (iOS: Clear History & Website Data) dữ liệu sẽ mất. Hãy xuất file backup định kỳ.
+    </p>
+    <div class="btn-row">
+      <button type="button" class="btn primary" id="setExportBtn">📥 Xuất backup (JSON)</button>
+      <button type="button" class="btn ghost" id="setImportBtn">📤 Nhập backup</button>
+      <input type="file" id="setImportFile" accept="application/json,.json" hidden>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:var(--danger-soft)">
+    <h2 style="color:var(--danger)">🗑️ Vùng nguy hiểm</h2>
+    <button type="button" class="btn danger block" id="setWipeBtn">Xoá toàn bộ dữ liệu</button>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== Bottom nav ===== -->
+<nav class="nav" aria-label="Điều hướng chính">
+  <button type="button" class="nav-btn active" data-tab="att"><span class="ico">⏱️</span>Chấm Công</button>
+  <button type="button" class="nav-btn" data-tab="exp"><span class="ico">💰</span>Chi Tiêu</button>
+  <button type="button" class="nav-btn" data-tab="emp"><span class="ico">👥</span>Nhân Viên</button>
+  <button type="button" class="nav-btn" data-tab="cat"><span class="ico">🏷️</span>Danh Mục</button>
+  <button type="button" class="nav-btn" data-tab="set"><span class="ico">⚙️</span>Cài Đặt</button>
+</nav>
+
+<!-- ===== Modal ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h3 id="modalTitle"></h3>
+      <button type="button" class="modal-close" id="modalCloseBtn" aria-label="Đóng">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
 </div>
 
-<!-- Modal Thêm/Sửa Nhân viên -->
-<div class="modal-overlay" id="att-employee-modal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="att-modal-employee-title">Thêm nhân viên mới</h3>
-            <button type="button" class="modal-close" onclick="closeModal('att-employee-modal')">&times;</button>
-        </div>
-        <div class="form-group">
-            <label for="att-modal-emp-code">Mã nhân viên</label>
-            <input type="text" class="form-control" id="att-modal-emp-code" placeholder="VD: NV01">
-        </div>
-        <div class="form-group">
-            <label for="att-modal-emp-name">Họ và tên</label>
-            <input type="text" class="form-control" id="att-modal-emp-name" placeholder="VD: Nguyễn Văn A">
-        </div>
-        <div class="form-group">
-            <label for="att-modal-emp-dept">Bộ phận / Phòng ban</label>
-            <input type="text" class="form-control" id="att-modal-emp-dept" placeholder="VD: Kế toán, Kỹ thuật...">
-        </div>
-        <button type="button" class="btn btn-primary btn-block" id="att-modal-save-employee">Lưu thông tin</button>
-        <input type="hidden" id="att-modal-edit-index">
-    </div>
-</div>
+<div class="toast" id="toastEl"></div>
 
-<!-- Modal Thêm/Sửa Danh mục -->
-<div class="modal-overlay" id="exp-category-modal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="exp-modal-category-title">Thêm danh mục mới</h3>
-            <button type="button" class="modal-close" onclick="closeModal('exp-category-modal')">&times;</button>
-        </div>
-        <div class="form-group">
-            <label for="exp-modal-cat-name">Tên danh mục</label>
-            <input type="text" class="form-control" id="exp-modal-cat-name" placeholder="VD: Ăn uống, Lương...">
-        </div>
-        <div class="form-group">
-            <label for="exp-modal-cat-type">Loại</label>
-            <select class="form-control" id="exp-modal-cat-type">
-                <option value="expense">Chi tiêu</option>
-                <option value="income">Thu nhập</option>
-            </select>
-        </div>
-        <button type="button" class="btn btn-primary btn-block" id="exp-modal-save-category">Lưu danh mục</button>
-        <input type="hidden" id="exp-modal-edit-index">
-    </div>
-</div>
-
-<div class="toast" id="toast"></div>
-<button type="button" class="float-action" id="float-add">⚡ Thêm nhanh</button>
-
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-    // =========================================================================
-    // CORE UTILS & SECURITY HELPERS
-    // =========================================================================
-    
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    function escapeCsvCell(cell) {
-        if (cell === null || cell === undefined) return '""';
-        let str = String(cell);
-        if (/^[=+\-@\t\r]/.test(str)) {
-            str = "'" + str;
-        }
-        return `"${str.replace(/"/g, '""')}"`;
-    }
-
-    function generateUUID() {
-        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-            return crypto.randomUUID();
-        }
-        return 'id-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-    }
-
-    function getTodayStr() {
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    function getCurrentWeekStr() {
-        const d = new Date();
-        const date = d.getDate();
-        const day = d.getDay() || 7;
-        d.setDate(date + 4 - day);
-        const year = d.getFullYear();
-        const firstDayOfYear = new Date(year, 0, 1);
-        const week = Math.ceil((((d - firstDayOfYear) / 86400000) + 1) / 7);
-        return `${year}-W${String(week).padStart(2, '0')}`;
-    }
-
-    function getCurrentMonthStr() {
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        return `${year}-${month}`;
-    }
-
-    function formatVND(num) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num || 0);
-    }
-
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
-    }
-
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-    function setNow(inputId) {
-        const d = new Date();
-        const hh = String(d.getHours()).padStart(2, '0');
-        const mm = String(d.getMinutes()).padStart(2, '0');
-        document.getElementById(inputId).value = `${hh}:${mm}`;
-    }
-
-    // =========================================================================
-    // STATE & INITIALIZATION
-    // =========================================================================
-
-    const DEFAULT_EMPLOYEES = [
-        { id: 'NV01', code: 'NV01', name: 'Nguyễn Văn A', dept: 'Kỹ Thuật' },
-        { id: 'NV02', code: 'NV02', name: 'Trần Thị B', dept: 'Kế Toán' }
-    ];
-
-    const DEFAULT_CATEGORIES = [
-        { id: 'cat-1', name: 'Ăn uống', type: 'expense' },
-        { id: 'cat-2', name: 'Đi lại / Xăng xe', type: 'expense' },
-        { id: 'cat-3', name: 'Mua sắm', type: 'expense' },
-        { id: 'cat-4', name: 'Hóa đơn & Tiện ích', type: 'expense' },
-        { id: 'cat-5', name: 'Lương', type: 'income' },
-        { id: 'cat-6', name: 'Thưởng / Khác', type: 'income' }
-    ];
-
-    const DEFAULT_CONFIG = {
-        standardIn: '08:00',
-        lunchStart: '12:00',
-        lunchEnd: '13:00',
-        scriptUrl: ''
-    };
-
-    let state = {
-        currentModule: 'attendance',
-        attReportMode: 'week',
-        expReportMode: 'week',
-        currentExpType: 'expense',
-        employees: JSON.parse(localStorage.getItem('pro_employees')) || DEFAULT_EMPLOYEES,
-        categories: JSON.parse(localStorage.getItem('pro_categories')) || DEFAULT_CATEGORIES,
-        attRecords: JSON.parse(localStorage.getItem('pro_att_records')) || [],
-        expRecords: JSON.parse(localStorage.getItem('pro_exp_records')) || [],
-        config: JSON.parse(localStorage.getItem('pro_config')) || DEFAULT_CONFIG
-    };
-
-    function saveState() {
-        localStorage.setItem('pro_employees', JSON.stringify(state.employees));
-        localStorage.setItem('pro_categories', JSON.stringify(state.categories));
-        localStorage.setItem('pro_att_records', JSON.stringify(state.attRecords));
-        localStorage.setItem('pro_exp_records', JSON.stringify(state.expRecords));
-        localStorage.setItem('pro_config', JSON.stringify(state.config));
-    }
-
-    // =========================================================================
-    // MODULE & TAB SWITCHING
-    // =========================================================================
-
-    function switchAppModule(mod) {
-        state.currentModule = mod;
-        document.querySelectorAll('.app-switcher-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
-
-        if (mod === 'attendance') {
-            document.getElementById('app-switch-attendance').classList.add('active');
-            document.getElementById('module-attendance').classList.add('active');
-            document.getElementById('main-header-title').innerHTML = '⏱️ <span>Quản Lý Công</span>';
-        } else {
-            document.getElementById('app-switch-expense').classList.add('active');
-            document.getElementById('module-expense').classList.add('active');
-            document.getElementById('main-header-title').innerHTML = '💰 <span>Quản Lý Chi Tiêu</span>';
-        }
-    }
-
-    function initTabs() {
-        document.querySelectorAll('.tab-bar').forEach(bar => {
-            bar.addEventListener('click', (e) => {
-                if (e.target.classList.contains('tab-btn')) {
-                    const targetTabId = e.target.getAttribute('data-tab');
-                    const parentSection = bar.closest('.app-section');
-                    
-                    parentSection.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                    parentSection.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-                    e.target.classList.add('active');
-                    document.getElementById(targetTabId).classList.add('active');
-                }
-            });
-        });
-    }
-
-    // =========================================================================
-    // MODULE 1: CHẤM CÔNG (LOGIC & CALCULATIONS)
-    // =========================================================================
-
-    function calculateShift(checkIn, checkOut, dateStr) {
-        if (!checkIn) return { hours: 0, status: 'Nghỉ', isLate: false, lateMins: 0 };
-
-        const stdin = state.config.standardIn || '08:00';
-        const [inH, inM] = checkIn.split(':').map(Number);
-        const [stdH, stdM] = stdin.split(':').map(Number);
-        
-        let lateMins = (inH * 60 + inM) - (stdH * 60 + stdM);
-        let isLate = lateMins > 0;
-        if (!isLate) lateMins = 0;
-
-        if (!checkOut) {
-            return { hours: 0, status: isLate ? `Đi muộn (${lateMins}p)` : 'Thiếu giờ ra', isLate, lateMins };
-        }
-
-        const [outH, outM] = checkOut.split(':').map(Number);
-        let startMins = inH * 60 + inM;
-        let endMins = outH * 60 + outM;
-
-        if (endMins < startMins) endMins += 24 * 60; // Ca qua đêm
-
-        let totalMins = endMins - startMins;
-
-        // Trừ giờ nghỉ trưa
-        if (state.config.lunchStart && state.config.lunchEnd) {
-            const [lSH, lSM] = state.config.lunchStart.split(':').map(Number);
-            const [lEH, lEM] = state.config.lunchEnd.split(':').map(Number);
-            const lunchStartMins = lSH * 60 + lSM;
-            const lunchEndMins = lEH * 60 + lEM;
-
-            const overlapStart = Math.max(startMins, lunchStartMins);
-            const overlapEnd = Math.min(endMins, lunchEndMins);
-
-            if (overlapEnd > overlapStart) {
-                totalMins -= (overlapEnd - overlapStart);
-            }
-        }
-
-        const hours = Math.max(0, Number((totalMins / 60).toFixed(2)));
-        let status = 'Đủ công';
-        if (isLate) status = `Đi muộn (${lateMins}p)`;
-
-        return { hours, status, isLate, lateMins };
-    }
-
-    function renderEmployeeDropdown() {
-        const select = document.getElementById('att-input-employee');
-        select.innerHTML = state.employees.map(e => 
-            `<option value="${escapeHtml(e.code)}">${escapeHtml(e.name)} (${escapeHtml(e.code)})</option>`
-        ).join('');
-    }
-
-    function renderAttTodayList() {
-        const today = document.getElementById('att-input-date').value || getTodayStr();
-        const records = state.attRecords.filter(r => r.date === today);
-        const container = document.getElementById('att-today-list');
-
-        if (records.length === 0) {
-            container.innerHTML = `<div class="empty-state">Chưa có dữ liệu chấm công cho ngày ${today}</div>`;
-            return;
-        }
-
-        container.innerHTML = records.map(r => {
-            const emp = state.employees.find(e => e.code === r.empCode) || { name: r.empCode, dept: '' };
-            const calc = calculateShift(r.checkIn, r.checkOut, r.date);
-            let badgeClass = 'badge-x';
-            if (calc.isLate) badgeClass = 'badge-n';
-            if (!r.checkOut) badgeClass = 'badge-dm';
-
-            return `
-                <div class="list-item">
-                    <div>
-                        <div class="emp-name">${escapeHtml(emp.name)}</div>
-                        <div class="emp-sub">Vào: ${r.checkIn || '--:--'} | Ra: ${r.checkOut || '--:--'} | ${escapeHtml(r.note || '')}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <span class="badge ${badgeClass}">${calc.status} (${calc.hours}h)</span>
-                        <div style="margin-top:4px;">
-                            <button type="button" class="btn btn-sm btn-outline" onclick="editAttRecord('${r.id}')">✏️</button>
-                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteAttRecord('${r.id}')">🗑️</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function saveAttRecord() {
-        const id = document.getElementById('att-input-edit-id').value;
-        const date = document.getElementById('att-input-date').value;
-        const empCode = document.getElementById('att-input-employee').value;
-        const checkIn = document.getElementById('att-input-checkin').value;
-        const checkOut = document.getElementById('att-input-checkout').value;
-        const note = document.getElementById('att-input-note').value.trim();
-
-        if (!date || !empCode) {
-            showToast('⚠️ Vui lòng điền đủ Ngày và Chọn nhân viên');
-            return;
-        }
-
-        if (id) {
-            const idx = state.attRecords.findIndex(r => r.id === id);
-            if (idx !== -1) {
-                state.attRecords[idx] = { id, date, empCode, checkIn, checkOut, note };
-                showToast('✅ Đã cập nhật ca làm');
-            }
-        } else {
-            const newRec = { id: generateUUID(), date, empCode, checkIn, checkOut, note };
-            state.attRecords.push(newRec);
-            showToast('✅ Đã ghi nhận ca làm');
-        }
-
-        saveState();
-        resetAttForm();
-        renderAttTodayList();
-        syncToGoogleSheets();
-    }
-
-    function resetAttForm() {
-        document.getElementById('att-input-edit-id').value = '';
-        document.getElementById('att-form-title').innerText = '📝 Ghi nhận ca làm';
-        document.getElementById('att-input-checkin').value = '';
-        document.getElementById('att-input-checkout').value = '';
-        document.getElementById('att-input-note').value = '';
-        document.getElementById('att-btn-cancel-edit').style.display = 'none';
-        document.getElementById('att-btn-save').innerText = 'Lưu dữ liệu ca làm';
-    }
-
-    function editAttRecord(id) {
-        const r = state.attRecords.find(x => x.id === id);
-        if (!r) return;
-        document.getElementById('att-input-edit-id').value = r.id;
-        document.getElementById('att-input-date').value = r.date;
-        document.getElementById('att-input-employee').value = r.empCode;
-        document.getElementById('att-input-checkin').value = r.checkIn || '';
-        document.getElementById('att-input-checkout').value = r.checkOut || '';
-        document.getElementById('att-input-note').value = r.note || '';
-        document.getElementById('att-form-title').innerText = '✏️ Chỉnh sửa ca làm';
-        document.getElementById('att-btn-cancel-edit').style.display = 'block';
-        document.getElementById('att-btn-save').innerText = 'Cập nhật ca làm';
-    }
-
-    function deleteAttRecord(id) {
-        if (!confirm('Bạn có chắc chắn muốn xóa bản ghi chấm công này?')) return;
-        state.attRecords = state.attRecords.filter(r => r.id !== id);
-        saveState();
-        renderAttTodayList();
-        showToast('🗑️ Đã xóa bản ghi');
-    }
-
-    function switchAttReportMode(mode) {
-        state.attReportMode = mode;
-        document.getElementById('att-mode-week-btn').classList.toggle('active', mode === 'week');
-        document.getElementById('att-mode-month-btn').classList.toggle('active', mode === 'month');
-        document.getElementById('att-group-filter-week').style.display = mode === 'week' ? 'block' : 'none';
-        document.getElementById('att-group-filter-month').style.display = mode === 'month' ? 'block' : 'none';
-    }
-
-    function generateAttReport() {
-        let filtered = [];
-        let infoText = '';
-
-        if (state.attReportMode === 'week') {
-            const val = document.getElementById('att-report-week').value;
-            if (!val) { showToast('⚠️ Chọn tuần để báo cáo'); return; }
-            infoText = `Báo cáo theo Tuần: ${val}`;
-            // Match ISO week
-            filtered = state.attRecords.filter(r => {
-                const rDate = new Date(r.date);
-                if (isNaN(rDate)) return false;
-                const d = new Date(rDate.getTime());
-                d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-                const year = d.getFullYear();
-                const firstDay = new Date(year, 0, 1);
-                const week = Math.ceil((((d - firstDay) / 86400000) + 1) / 7);
-                const wStr = `${year}-W${String(week).padStart(2, '0')}`;
-                return wStr === val;
-            });
-        } else {
-            const val = document.getElementById('att-report-month').value;
-            if (!val) { showToast('⚠️ Chọn tháng để báo cáo'); return; }
-            infoText = `Báo cáo theo Tháng: ${val}`;
-            filtered = state.attRecords.filter(r => r.date && r.date.startsWith(val));
-        }
-
-        document.getElementById('att-report-range-info').innerText = `${infoText} (${filtered.length} lượt công)`;
-
-        // Aggr
-        let totalHours = 0;
-        let lateCount = 0;
-        const empAgg = {};
-
-        state.employees.forEach(e => {
-            empAgg[e.code] = { name: e.name, hours: 0, lates: 0, shifts: 0 };
-        });
-
-        filtered.forEach(r => {
-            const calc = calculateShift(r.checkIn, r.checkOut, r.date);
-            totalHours += calc.hours;
-            if (calc.isLate) lateCount++;
-
-            if (!empAgg[r.empCode]) {
-                empAgg[r.empCode] = { name: r.empCode, hours: 0, lates: 0, shifts: 0 };
-            }
-            empAgg[r.empCode].hours += calc.hours;
-            if (calc.isLate) empAgg[r.empCode].lates++;
-            empAgg[r.empCode].shifts++;
-        });
-
-        document.getElementById('att-report-summary').innerHTML = `
-            <div class="summary-item">
-                <div class="number balance">${filtered.length}</div>
-                <div class="label">Tổng Ca</div>
-            </div>
-            <div class="summary-item">
-                <div class="number income">${totalHours.toFixed(1)}h</div>
-                <div class="label">Tổng Giờ Làm</div>
-            </div>
-            <div class="summary-item">
-                <div class="number expense">${lateCount}</div>
-                <div class="label">Lượt Đi Muộn</div>
-            </div>
-        `;
-
-        document.getElementById('att-report-detail').innerHTML = `
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mã NV</th>
-                            <th>Tên NV</th>
-                            <th>Số ca</th>
-                            <th>Tổng giờ</th>
-                            <th>Đi muộn</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${Object.keys(empAgg).map(code => {
-                            const e = empAgg[code];
-                            return `
-                                <tr>
-                                    <td><b>${escapeHtml(code)}</b></td>
-                                    <td>${escapeHtml(e.name)}</td>
-                                    <td>${e.shifts}</td>
-                                    <td><b>${e.hours.toFixed(1)}h</b></td>
-                                    <td>${e.lates > 0 ? `<span class="badge badge-n">${e.lates}</span>` : '0'}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-
-    function exportAttCSV() {
-        if (state.attRecords.length === 0) {
-            showToast('⚠️ Không có dữ liệu để xuất!');
-            return;
-        }
-
-        let csv = '\uFEFF'; // UTF-8 BOM
-        csv += 'ID,Ngay,MaNV,TenNV,GioVao,GioRa,SoGio,TrangThai,GhiChu\n';
-
-        state.attRecords.forEach(r => {
-            const emp = state.employees.find(e => e.code === r.empCode) || { name: r.empCode };
-            const calc = calculateShift(r.checkIn, r.checkOut, r.date);
-            const row = [
-                escapeCsvCell(r.id),
-                escapeCsvCell(r.date),
-                escapeCsvCell(r.empCode),
-                escapeCsvCell(emp.name),
-                escapeCsvCell(r.checkIn || ''),
-                escapeCsvCell(r.checkOut || ''),
-                escapeCsvCell(calc.hours),
-                escapeCsvCell(calc.status),
-                escapeCsvCell(r.note || '')
-            ];
-            csv += row.join(',') + '\n';
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Bao_Cao_Cham_Cong_${getTodayStr()}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('📥 Đã xuất file CSV thành công');
-    }
-
-    function renderEmployeeList() {
-        const search = (document.getElementById('att-search-employee').value || '').toLowerCase();
-        const filtered = state.employees.filter(e => 
-            e.name.toLowerCase().includes(search) || e.code.toLowerCase().includes(search)
-        );
-
-        const container = document.getElementById('att-employee-list');
-        if (filtered.length === 0) {
-            container.innerHTML = `<div class="empty-state">Không tìm thấy nhân viên nào</div>`;
-            return;
-        }
-
-        container.innerHTML = filtered.map((e, idx) => `
-            <div class="list-item">
-                <div>
-                    <div class="emp-name">${escapeHtml(e.name)} (${escapeHtml(e.code)})</div>
-                    <div class="emp-sub">Phòng ban: ${escapeHtml(e.dept || 'Chưa xếp')}</div>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-sm btn-outline" onclick="openEditEmployeeModal(${idx})">✏️</button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteEmployee(${idx})">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function openEditEmployeeModal(index = null) {
-        if (index !== null) {
-            const e = state.employees[index];
-            document.getElementById('att-modal-employee-title').innerText = 'Sửa thông tin nhân viên';
-            document.getElementById('att-modal-emp-code').value = e.code;
-            document.getElementById('att-modal-emp-code').disabled = true;
-            document.getElementById('att-modal-emp-name').value = e.name;
-            document.getElementById('att-modal-emp-dept').value = e.dept || '';
-            document.getElementById('att-modal-edit-index').value = index;
-        } else {
-            document.getElementById('att-modal-employee-title').innerText = 'Thêm nhân viên mới';
-            document.getElementById('att-modal-emp-code').value = '';
-            document.getElementById('att-modal-emp-code').disabled = false;
-            document.getElementById('att-modal-emp-name').value = '';
-            document.getElementById('att-modal-emp-dept').value = '';
-            document.getElementById('att-modal-edit-index').value = '';
-        }
-        openModal('att-employee-modal');
-    }
-
-    function saveEmployeeModal() {
-        const code = document.getElementById('att-modal-emp-code').value.trim();
-        const name = document.getElementById('att-modal-emp-name').value.trim();
-        const dept = document.getElementById('att-modal-emp-dept').value.trim();
-        const idxStr = document.getElementById('att-modal-edit-index').value;
-
-        if (!code || !name) {
-            showToast('⚠️ Vui lòng nhập Mã và Tên NV');
-            return;
-        }
-
-        if (idxStr !== '') {
-            const idx = parseInt(idxStr);
-            state.employees[idx] = { ...state.employees[idx], name, dept };
-            showToast('✅ Đã cập nhật nhân viên');
-        } else {
-            if (state.employees.some(e => e.code === code)) {
-                showToast('⚠️ Mã nhân viên đã tồn tại!');
-                return;
-            }
-            state.employees.push({ id: generateUUID(), code, name, dept });
-            showToast('✅ Đã thêm nhân viên mới');
-        }
-
-        saveState();
-        renderEmployeeDropdown();
-        renderEmployeeList();
-        closeModal('att-employee-modal');
-    }
-
-    function deleteEmployee(index) {
-        if (!confirm('Bạn có chắc chắn muốn xóa nhân viên này?')) return;
-        state.employees.splice(index, 1);
-        saveState();
-        renderEmployeeDropdown();
-        renderEmployeeList();
-        showToast('🗑️ Đã xóa nhân viên');
-    }
-
-    // =========================================================================
-    // MODULE 2: CHI TIÊU & TESSERACT OCR SCANNER (ADVANCED PATTERN MATCHING)
-    // =========================================================================
-
-    function setExpType(type) {
-        state.currentExpType = type;
-        document.getElementById('exp-type-expense').className = `type-btn ${type === 'expense' ? 'active-expense' : ''}`;
-        document.getElementById('exp-type-income').className = `type-btn ${type === 'income' ? 'active-income' : ''}`;
-        renderCategoryDropdown();
-    }
-
-    function renderCategoryDropdown() {
-        const select = document.getElementById('exp-input-category');
-        const cats = state.categories.filter(c => c.type === state.currentExpType);
-        
-        if (cats.length === 0) {
-            select.innerHTML = `<option value="">-- Chưa có danh mục --</option>`;
-            return;
-        }
-        select.innerHTML = cats.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
-    }
-
-    function renderExpTodayList() {
-        const today = document.getElementById('exp-input-date').value || getTodayStr();
-        const records = state.expRecords.filter(r => r.date === today);
-        const container = document.getElementById('exp-today-list');
-
-        if (records.length === 0) {
-            container.innerHTML = `<div class="empty-state">Chưa có giao dịch nào cho ngày ${today}</div>`;
-            return;
-        }
-
-        container.innerHTML = records.map(r => `
-            <div class="list-item">
-                <div>
-                    <div class="item-name">${escapeHtml(r.recipient || r.category)}</div>
-                    <div class="item-sub">
-                        <span class="cat-chip ${r.type}">${escapeHtml(r.category)}</span>
-                        ${r.note ? escapeHtml(r.note) : ''}
-                    </div>
-                </div>
-                <div style="text-align:right;">
-                    <div class="item-amount ${r.type}">${r.type === 'income' ? '+' : '-'}${formatVND(r.amount)}</div>
-                    <div style="margin-top:4px;">
-                        <button type="button" class="btn btn-sm btn-outline" onclick="editExpRecord('${r.id}')">✏️</button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteExpRecord('${r.id}')">🗑️</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function saveExpRecord() {
-        const id = document.getElementById('exp-input-edit-id').value;
-        const type = state.currentExpType;
-        const date = document.getElementById('exp-input-date').value;
-        const category = document.getElementById('exp-input-category').value;
-        const amount = parseFloat(document.getElementById('exp-input-amount').value);
-        const recipient = document.getElementById('exp-input-recipient').value.trim();
-        const note = document.getElementById('exp-input-note').value.trim();
-
-        if (!date || isNaN(amount) || amount <= 0 || !category) {
-            showToast('⚠️ Vui lòng nhập ngày, chọn danh mục và số tiền hợp lệ');
-            return;
-        }
-
-        if (id) {
-            const idx = state.expRecords.findIndex(r => r.id === id);
-            if (idx !== -1) {
-                state.expRecords[idx] = { id, type, date, category, amount, recipient, note };
-                showToast('✅ Đã cập nhật giao dịch');
-            }
-        } else {
-            const newRec = { id: generateUUID(), type, date, category, amount, recipient, note };
-            state.expRecords.push(newRec);
-            showToast('✅ Đã lưu giao dịch');
-        }
-
-        saveState();
-        resetExpForm();
-        renderExpTodayList();
-    }
-
-    function resetExpForm() {
-        document.getElementById('exp-input-edit-id').value = '';
-        document.getElementById('exp-form-title').innerText = '📝 Ghi nhận giao dịch';
-        document.getElementById('exp-input-amount').value = '';
-        document.getElementById('exp-input-recipient').value = '';
-        document.getElementById('exp-input-note').value = '';
-        document.getElementById('exp-btn-cancel-edit').style.display = 'none';
-        document.getElementById('exp-btn-save').innerText = 'Lưu giao dịch';
-    }
-
-    function editExpRecord(id) {
-        const r = state.expRecords.find(x => x.id === id);
-        if (!r) return;
-        setExpType(r.type);
-        document.getElementById('exp-input-edit-id').value = r.id;
-        document.getElementById('exp-input-date').value = r.date;
-        document.getElementById('exp-input-category').value = r.category;
-        document.getElementById('exp-input-amount').value = r.amount;
-        document.getElementById('exp-input-recipient').value = r.recipient || '';
-        document.getElementById('exp-input-note').value = r.note || '';
-        document.getElementById('exp-form-title').innerText = '✏️ Chỉnh sửa giao dịch';
-        document.getElementById('exp-btn-cancel-edit').style.display = 'block';
-        document.getElementById('exp-btn-save').innerText = 'Cập nhật giao dịch';
-    }
-
-    function deleteExpRecord(id) {
-        if (!confirm('Xóa giao dịch này?')) return;
-        state.expRecords = state.expRecords.filter(r => r.id !== id);
-        saveState();
-        renderExpTodayList();
-        showToast('🗑️ Đã xóa giao dịch');
-    }
-
-    // --- Tesseract OCR Scanner Engine ---
-    let selectedImageFile = null;
-
-    function setupOCRScanner() {
-        const fileInput = document.getElementById('exp-scan-input');
-        const chooseBtn = document.getElementById('exp-btn-choose-image');
-        const takePhotoBtn = document.getElementById('exp-btn-take-photo');
-        const analyzeBtn = document.getElementById('exp-btn-analyze');
-        const clearBtn = document.getElementById('exp-btn-clear-image');
-        const preview = document.getElementById('exp-scan-preview');
-        const placeholder = document.getElementById('exp-scan-placeholder');
-        const scanArea = document.getElementById('exp-scan-area');
-
-        chooseBtn.addEventListener('click', () => {
-            fileInput.removeAttribute('capture');
-            fileInput.click();
-        });
-
-        takePhotoBtn.addEventListener('click', () => {
-            fileInput.setAttribute('capture', 'environment');
-            fileInput.click();
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files[0]) {
-                selectedImageFile = e.target.files[0];
-                const url = URL.createObjectURL(selectedImageFile);
-                preview.src = url;
-                preview.classList.add('show');
-                placeholder.style.display = 'none';
-                scanArea.classList.add('has-image');
-                analyzeBtn.style.display = 'inline-flex';
-                clearBtn.style.display = 'inline-flex';
-                document.getElementById('exp-ocr-status').innerText = 'Hình ảnh đã chọn. Nhấn "Phân tích" để quét.';
-                document.getElementById('exp-ocr-status').className = 'ocr-status';
-            }
-        });
-
-        clearBtn.addEventListener('click', resetOCR);
-        analyzeBtn.addEventListener('click', processImageOCR);
-    }
-
-    function resetOCR() {
-        selectedImageFile = null;
-        document.getElementById('exp-scan-input').value = '';
-        document.getElementById('exp-scan-preview').src = '';
-        document.getElementById('exp-scan-preview').classList.remove('show');
-        document.getElementById('exp-scan-placeholder').style.display = 'block';
-        document.getElementById('exp-scan-area').classList.remove('has-image');
-        document.getElementById('exp-btn-analyze').style.display = 'none';
-        document.getElementById('exp-btn-clear-image').style.display = 'none';
-        document.getElementById('exp-ocr-status').innerText = '';
-        document.getElementById('exp-ocr-raw').classList.remove('show');
-        document.getElementById('exp-ocr-progress').classList.remove('show');
-    }
-
-    async function processImageOCR() {
-        if (!selectedImageFile) return;
-
-        const status = document.getElementById('exp-ocr-status');
-        const pBar = document.getElementById('exp-ocr-progress');
-        const bar = document.getElementById('exp-ocr-bar');
-        const rawDiv = document.getElementById('exp-ocr-raw');
-
-        status.className = 'ocr-status loading';
-        status.innerText = 'Đang khởi chạy OCR...';
-        pBar.classList.add('show');
-        bar.style.width = '10%';
-
-        try {
-            const worker = await Tesseract.createWorker('vie+eng');
-            
-            status.innerText = 'Đang đọc và bóc tách dữ liệu từ biên lai...';
-            bar.style.width = '40%';
-
-            const ret = await worker.recognize(selectedImageFile);
-            const text = ret.data.text;
-            bar.style.width = '90%';
-
-            await worker.terminate();
-
-            bar.style.width = '100%';
-            status.className = 'ocr-status success';
-            status.innerText = '✅ Quét thành công!';
-
-            rawDiv.innerText = "=== Nội dung thô quét được ===\n" + text;
-            rawDiv.classList.add('show');
-
-            parseBankReceiptText(text);
-
-            setTimeout(() => pBar.classList.remove('show'), 1000);
-        } catch (err) {
-            console.error(err);
-            status.className = 'ocr-status error';
-            status.innerText = '❌ Lỗi khi quét ảnh. Thử lại với ảnh rõ nét hơn.';
-            pBar.classList.remove('show');
-        }
-    }
-
-    function parseBankReceiptText(text) {
-        if (!text) return;
-        
-        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-        let detectedAmount = 0;
-        let detectedRecipient = '';
-        let detectedDate = getTodayStr();
-
-        // 1. Phân tích Số tiền (Patterns: "VND 500.000", "500,000 d", "Số tiền: 1,000,000")
-        const amountRegexes = [
-            (/(?:số\s*tiền|thành\s*tiền|giao\d*dịch|vnd|đ|amount)[\s:=]*([0-9.,]+)/i),
-            (/([0-9]{1,3}(?:[.,][0-9]{3})+)\s*(?:VND|VNĐ|đ|d)/i),
-            (/([0-9]{4,9})\s*(?:VND|VNĐ|đ|d)/i)
-        ];
-
-        for (const line of lines) {
-            for (const reg of amountRegexes) {
-                const match = line.match(reg);
-                if (match && match[1]) {
-                    const rawNumStr = match[1].replace(/[^0-9]/g, '');
-                    const val = parseInt(rawNumStr, 10);
-                    if (val >= 1000 && val <= 500000000) { // Giới hạn hợp lý cho 1 giao dịch
-                        detectedAmount = val;
-                        break;
-                    }
-                }
-            }
-            if (detectedAmount > 0) break;
-        }
-
-        // 2. Phân tích Người nhận / Nội dung (Patterns: "Tên người nhận", "Tài khoản nhận", "Nội dung")
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (/(?:người\s*nhận|tên\s*người\s*nhận|đến\s*tài\s*khoản|tài\s*khoản\s*hưởng|bên\s*nhận)/i.test(line)) {
-                let candidate = line.replace(/.*(?:người\s*nhận|tên\s*người\s*nhận|đến\s*tài\s*khoản|tài\s*khoản\s*hưởng|bên\s*nhận)[\s:=]*/i, '');
-                if (!candidate && lines[i + 1]) candidate = lines[i + 1];
-                if (candidate && candidate.length > 2) {
-                    detectedRecipient = candidate;
-                    break;
-                }
-            }
-        }
-
-        if (!detectedRecipient) {
-            for (let i = 0; i < lines.length; i++) {
-                if (/(?:nội\s*dung|lý\s*do|thông\s*tin)/i.test(lines[i])) {
-                    let candidate = lines[i].replace(/.*(?:nội\s*dung|lý\s*do|thông\s*tin)[\s:=]*/i, '');
-                    if (!candidate && lines[i + 1]) candidate = lines[i + 1];
-                    if (candidate) {
-                        detectedRecipient = candidate;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // 3. Phân tích Ngày (Patterns: DD/MM/YYYY, YYYY-MM-DD)
-        const dateMatch = text.match(/([0-3]?[0-9])[\/.-]([0-1]?[0-9])[\/.-](202[0-9])/);
-        if (dateMatch) {
-            const day = String(dateMatch[1]).padStart(2, '0');
-            const month = String(dateMatch[2]).padStart(2, '0');
-            const year = dateMatch[3];
-            detectedDate = `${year}-${month}-${day}`;
-        }
-
-        // Tự động điền vào Form
-        setExpType('expense');
-        if (detectedAmount > 0) document.getElementById('exp-input-amount').value = detectedAmount;
-        if (detectedRecipient) document.getElementById('exp-input-recipient').value = detectedRecipient;
-        document.getElementById('exp-input-date').value = detectedDate;
-
-        showToast('🎉 Đã trích xuất thông tin hóa đơn vào Form!');
-    }
-
-    function switchExpReportMode(mode) {
-        state.expReportMode = mode;
-        document.getElementById('exp-mode-week-btn').classList.toggle('active', mode === 'week');
-        document.getElementById('exp-mode-month-btn').classList.toggle('active', mode === 'month');
-        document.getElementById('exp-group-filter-week').style.display = mode === 'week' ? 'block' : 'none';
-        document.getElementById('exp-group-filter-month').style.display = mode === 'month' ? 'block' : 'none';
-    }
-
-    function generateExpReport() {
-        let filtered = [];
-        let infoText = '';
-
-        if (state.expReportMode === 'week') {
-            const val = document.getElementById('exp-report-week').value;
-            if (!val) { showToast('⚠️ Chọn tuần để báo cáo'); return; }
-            infoText = `Báo cáo Chi tiêu Tuần: ${val}`;
-            filtered = state.expRecords.filter(r => {
-                const rDate = new Date(r.date);
-                if (isNaN(rDate)) return false;
-                const d = new Date(rDate.getTime());
-                d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-                const year = d.getFullYear();
-                const firstDay = new Date(year, 0, 1);
-                const week = Math.ceil((((d - firstDay) / 86400000) + 1) / 7);
-                return `${year}-W${String(week).padStart(2, '0')}` === val;
-            });
-        } else {
-            const val = document.getElementById('exp-report-month').value;
-            if (!val) { showToast('⚠️ Chọn tháng để báo cáo'); return; }
-            infoText = `Báo cáo Chi tiêu Tháng: ${val}`;
-            filtered = state.expRecords.filter(r => r.date && r.date.startsWith(val));
-        }
-
-        document.getElementById('exp-report-range-info').innerText = `${infoText} (${filtered.length} giao dịch)`;
-
-        let totalIncome = 0;
-        let totalExpense = 0;
-        const catIncomeMap = {};
-        const catExpenseMap = {};
-
-        filtered.forEach(r => {
-            if (r.type === 'income') {
-                totalIncome += r.amount;
-                catIncomeMap[r.category] = (catIncomeMap[r.category] || 0) + r.amount;
-            } else {
-                totalExpense += r.amount;
-                catExpenseMap[r.category] = (catExpenseMap[r.category] || 0) + r.amount;
-            }
-        });
-
-        const net = totalIncome - totalExpense;
-
-        document.getElementById('exp-report-summary').innerHTML = `
-            <div class="summary-item">
-                <div class="number income">${formatVND(totalIncome)}</div>
-                <div class="label">Tổng Thu</div>
-            </div>
-            <div class="summary-item">
-                <div class="number expense">${formatVND(totalExpense)}</div>
-                <div class="label">Tổng Chi</div>
-            </div>
-            <div class="summary-item">
-                <div class="number balance">${formatVND(net)}</div>
-                <div class="label">Dư Tích Lũy</div>
-            </div>
-        `;
-
-        // Render Thu nhập theo Danh mục
-        document.getElementById('exp-report-income-detail').innerHTML = `
-            <div style="font-weight:700;font-size:14px;color:#15803d;margin-bottom:8px;">📈 Thu nhập theo danh mục:</div>
-            ${Object.keys(catIncomeMap).length === 0 ? '<div class="empty-state">Không có thu nhập</div>' : `
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>Danh mục</th><th>Số tiền</th><th>Tỷ lệ</th></tr></thead>
-                        <tbody>
-                            ${Object.keys(catIncomeMap).map(cat => {
-                                const amt = catIncomeMap[cat];
-                                const pct = ((amt / (totalIncome || 1)) * 100).toFixed(1);
-                                return `<tr><td><b>${escapeHtml(cat)}</b></td><td>${formatVND(amt)}</td><td>${pct}%</td></tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `}
-        `;
-
-        // Render Chi tiêu theo Danh mục
-        document.getElementById('exp-report-expense-detail').innerHTML = `
-            <div style="font-weight:700;font-size:14px;color:#b91c1c;margin-bottom:8px;">📉 Chi tiêu theo danh mục:</div>
-            ${Object.keys(catExpenseMap).length === 0 ? '<div class="empty-state">Không có chi tiêu</div>' : `
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>Danh mục</th><th>Số tiền</th><th>Tỷ lệ</th></tr></thead>
-                        <tbody>
-                            ${Object.keys(catExpenseMap).map(cat => {
-                                const amt = catExpenseMap[cat];
-                                const pct = ((amt / (totalExpense || 1)) * 100).toFixed(1);
-                                return `<tr><td><b>${escapeHtml(cat)}</b></td><td>${formatVND(amt)}</td><td>${pct}%</td></tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `}
-        `;
-    }
-
-    function exportExpCSV() {
-        if (state.expRecords.length === 0) {
-            showToast('⚠️ Không có dữ liệu chi tiêu để xuất!');
-            return;
-        }
-
-        let csv = '\uFEFF';
-        csv += 'ID,Loai,Ngay,DanhMuc,SoTien,NguoiNhan,GhiChu\n';
-
-        state.expRecords.forEach(r => {
-            const row = [
-                escapeCsvCell(r.id),
-                escapeCsvCell(r.type === 'income' ? 'Thu nhập' : 'Chi tiêu'),
-                escapeCsvCell(r.date),
-                escapeCsvCell(r.category),
-                escapeCsvCell(r.amount),
-                escapeCsvCell(r.recipient || ''),
-                escapeCsvCell(r.note || '')
-            ];
-            csv += row.join(',') + '\n';
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Bao_Cao_Chi_Tieu_${getTodayStr()}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('📥 Đã xuất file CSV Chi tiêu thành công');
-    }
-
-    function renderCategoryList() {
-        const search = (document.getElementById('exp-search-category').value || '').toLowerCase();
-        const filtered = state.categories.filter(c => c.name.toLowerCase().includes(search));
-        const container = document.getElementById('exp-category-list');
-
-        if (filtered.length === 0) {
-            container.innerHTML = `<div class="empty-state">Không tìm thấy danh mục nào</div>`;
-            return;
-        }
-
-        container.innerHTML = filtered.map((c, idx) => `
-            <div class="list-item">
-                <div>
-                    <span class="cat-chip ${c.type}">${c.type === 'income' ? 'Thu' : 'Chi'}</span>
-                    <span class="emp-name">${escapeHtml(c.name)}</span>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-sm btn-outline" onclick="openEditCategoryModal(${idx})">✏️</button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteCategory(${idx})">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function openEditCategoryModal(index = null) {
-        if (index !== null) {
-            const c = state.categories[index];
-            document.getElementById('exp-modal-category-title').innerText = 'Sửa danh mục';
-            document.getElementById('exp-modal-cat-name').value = c.name;
-            document.getElementById('exp-modal-cat-type').value = c.type;
-            document.getElementById('exp-modal-edit-index').value = index;
-        } else {
-            document.getElementById('exp-modal-category-title').innerText = 'Thêm danh mục mới';
-            document.getElementById('exp-modal-cat-name').value = '';
-            document.getElementById('exp-modal-cat-type').value = 'expense';
-            document.getElementById('exp-modal-edit-index').value = '';
-        }
-        openModal('exp-category-modal');
-    }
-
-    function saveCategoryModal() {
-        const name = document.getElementById('exp-modal-cat-name').value.trim();
-        const type = document.getElementById('exp-modal-cat-type').value;
-        const idxStr = document.getElementById('exp-modal-edit-index').value;
-
-        if (!name) {
-            showToast('⚠️ Vui lòng nhập tên danh mục');
-            return;
-        }
-
-        if (idxStr !== '') {
-            const idx = parseInt(idxStr);
-            state.categories[idx] = { ...state.categories[idx], name, type };
-            showToast('✅ Đã cập nhật danh mục');
-        } else {
-            if (state.categories.some(c => c.name.toLowerCase() === name.toLowerCase() && c.type === type)) {
-                showToast('⚠️ Danh mục này đã tồn tại!');
-                return;
-            }
-            state.categories.push({ id: generateUUID(), name, type });
-            showToast('✅ Đã thêm danh mục mới');
-        }
-
-        saveState();
-        renderCategoryDropdown();
-        renderCategoryList();
-        closeModal('exp-category-modal');
-    }
-
-    function deleteCategory(index) {
-        if (!confirm('Bạn chắc chắn muốn xóa danh mục này?')) return;
-        state.categories.splice(index, 1);
-        saveState();
-        renderCategoryDropdown();
-        renderCategoryList();
-        showToast('🗑️ Đã xóa danh mục');
-    }
-
-    // =========================================================================
-    // GOOGLE APPS SCRIPT INTEGRATION & BACKUP / RESTORE
-    // =========================================================================
-
-    function loadConfigUI() {
-        document.getElementById('att-cfg-stdin').value = state.config.standardIn || '08:00';
-        document.getElementById('att-cfg-lunch-start').value = state.config.lunchStart || '12:00';
-        document.getElementById('att-cfg-lunch-end').value = state.config.lunchEnd || '13:00';
-        document.getElementById('att-cfg-script-url').value = state.config.scriptUrl || '';
-    }
-
-    function saveConfigUI() {
-        state.config.standardIn = document.getElementById('att-cfg-stdin').value || '08:00';
-        state.config.lunchStart = document.getElementById('att-cfg-lunch-start').value || '';
-        state.config.lunchEnd = document.getElementById('att-cfg-lunch-end').value || '';
-        state.config.scriptUrl = document.getElementById('att-cfg-script-url').value.trim();
-
-        saveState();
-        showToast('⚙️ Đã lưu cấu hình hệ thống');
-    }
-
-    async function syncToGoogleSheets() {
-        if (!state.config.scriptUrl) return;
-
-        try {
-            const payload = {
-                timestamp: new Date().toISOString(),
-                attRecords: state.attRecords,
-                expRecords: state.expRecords
-            };
-
-            await fetch(state.config.scriptUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            console.log('Synced to Google Sheets (no-cors)');
-        } catch (err) {
-            console.error('Google Sheets Sync Failed:', err);
-        }
-    }
-
-    function setupBackupRestore() {
-        document.getElementById('btn-export-backup').addEventListener('click', () => {
-            const backupData = {
-                version: '2.0',
-                exportedAt: new Date().toISOString(),
-                state: state
-            };
-
-            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `QuanLyPro_Backup_${getTodayStr()}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('📤 Đã xuất file sao lưu JSON');
-        });
-
-        document.getElementById('file-import-backup').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                try {
-                    const data = JSON.parse(evt.target.result);
-                    if (data && data.state) {
-                        state = { ...state, ...data.state };
-                        saveState();
-                        initAppUI();
-                        showToast('📥 Khôi phục dữ liệu thành công!');
-                    } else {
-                        throw new Error('Cấu trúc file không đúng');
-                    }
-                } catch (err) {
-                    alert('Lỗi: File sao lưu không hợp lệ!');
-                }
-            };
-            reader.readAsText(file);
-        });
-    }
-
-    // =========================================================================
-    // BINDINGS & APP INITIALIZATION
-    // =========================================================================
-
-    function bindEvents() {
-        initTabs();
-        setupOCRScanner();
-        setupBackupRestore();
-
-        // Chấm công Events
-        document.getElementById('att-btn-save').addEventListener('click', saveAttRecord);
-        document.getElementById('att-btn-cancel-edit').addEventListener('click', resetAttForm);
-        document.getElementById('att-btn-refresh').addEventListener('click', renderAttTodayList);
-        document.getElementById('att-btn-report').addEventListener('click', generateAttReport);
-        document.getElementById('att-btn-export-csv').addEventListener('click', exportAttCSV);
-        document.getElementById('att-btn-add-employee').addEventListener('click', () => openEditEmployeeModal(null));
-        document.getElementById('att-modal-save-employee').addEventListener('click', saveEmployeeModal);
-        document.getElementById('att-search-employee').addEventListener('input', renderEmployeeList);
-        document.getElementById('att-btn-save-cfg').addEventListener('click', saveConfigUI);
-
-        // Chi tiêu Events
-        document.getElementById('exp-btn-save').addEventListener('click', saveExpRecord);
-        document.getElementById('exp-btn-cancel-edit').addEventListener('click', resetExpForm);
-        document.getElementById('exp-btn-refresh').addEventListener('click', renderExpTodayList);
-        document.getElementById('exp-btn-report').addEventListener('click', generateExpReport);
-        document.getElementById('exp-btn-export-csv').addEventListener('click', exportExpCSV);
-        document.getElementById('exp-btn-add-category').addEventListener('click', () => openEditCategoryModal(null));
-        document.getElementById('exp-modal-save-category').addEventListener('click', saveCategoryModal);
-        document.getElementById('exp-search-category').addEventListener('input', renderCategoryList);
-
-        // Quick Float Button Action
-        document.getElementById('float-add').addEventListener('click', () => {
-            if (state.currentModule === 'attendance') {
-                setNow('att-input-checkin');
-                showToast('⏱️ Đã lấy giờ hiện tại cho Giờ vào');
-            } else {
-                document.getElementById('exp-input-amount').focus();
-            }
-        });
-    }
-
-    function initAppUI() {
-        // Init Inputs Date/Week/Month
-        const todayStr = getTodayStr();
-        document.getElementById('att-input-date').value = todayStr;
-        document.getElementById('exp-input-date').value = todayStr;
-        document.getElementById('att-report-week').value = getCurrentWeekStr();
-        document.getElementById('att-report-month').value = getCurrentMonthStr();
-        document.getElementById('exp-report-week').value = getCurrentWeekStr();
-        document.getElementById('exp-report-month').value = getCurrentMonthStr();
-
-        // Render Dropdowns & Lists
-        renderEmployeeDropdown();
-        renderCategoryDropdown();
-        renderAttTodayList();
-        renderExpTodayList();
-        renderEmployeeList();
-        renderCategoryList();
-        loadConfigUI();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        bindEvents();
-        initAppUI();
+'use strict';
+/* ============================================================
+   HỆ THỐNG QUẢN LÝ DI ĐỘNG PRO — bản hoàn thiện
+   Đã xử lý 18 vấn đề code-review:
+   #1 múi giờ · #2 xoá NV giữ bản ghi · #3 sửa mã NV giữ liên kết
+   #4 XSS escapeHtml · #5 sync minh bạch + hàng chờ · #6 ISO week chuẩn
+   #7 nghỉ trưa cấu hình được · #8 giờ chuẩn cấu hình được
+   #9 parser biên lai cải tiến · #10 id randomUUID · #11 sửa bản ghi
+   #12 bỏ service-worker giả · #13 export/import JSON · #14 parse 1 lần
+   #15 revokeObjectURL · #16 CSV injection + dòng tổng · #17 a11y
+   #18 type="button"
+============================================================ */
+
+/* ---------- Helpers ---------- */
+const $ = sel => document.querySelector(sel);
+const pad = n => String(n).padStart(2, '0');
+
+/* #10: id duy nhất, không trùng kể cả khi lưu liên tiếp */
+function uid(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+/* #4: escape mọi dữ liệu người dùng trước khi đưa vào HTML */
+function esc(v){
+  return String(v ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* #16: chống CSV injection cho Excel */
+function csvCell(v){
+  let s = String(v ?? '');
+  if (/^[=+\-@\t]/.test(s)) s = "'" + s;
+  if (/[",\n;]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function loadJSON(key, fallback){
+  try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); }
+  catch(e){ return fallback; }
+}
+function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+/* ---------- Storage keys ---------- */
+const K = {
+  employees: 'mp_employees_v2',
+  categories: 'mp_categories_v2',
+  attendance: 'mp_attendance_v2',
+  transactions: 'mp_transactions_v2',
+  settings: 'mp_settings_v2',
+  syncQueue: 'mp_sync_queue_v2'
+};
+
+/* ---------- #1: ngày "hôm nay" theo giờ ĐỊA PHƯƠNG ---------- */
+function getTodayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function nowTimeStr(){
+  const d = new Date();
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fmtDateVN(iso){
+  if(!iso) return '';
+  const p = iso.split('-');
+  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+}
+function fmtMoney(n){ return (Number(n) || 0).toLocaleString('vi-VN') + ' ₫'; }
+function fmtH(min){ min = Math.max(0, Math.round(min)); return `${Math.floor(min/60)}h${pad(min%60)}`; }
+function timeToMin(t){ const p = String(t).split(':'); return (+p[0]||0)*60 + (+p[1]||0); }
+
+/* ---------- #6: ISO week chuẩn (thuật toán UTC, không dính DST) ---------- */
+function getISOWeekData(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return { year: d.getUTCFullYear(), week: weekNo };
+}
+function getDateRangeOfISOWeek(year, week){
+  const jan4 = new Date(Date.UTC(year, 0, 4));           // 4/1 luôn thuộc tuần 1
+  const dow = jan4.getUTCDay() || 7;
+  const monday = new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate() - dow + 1 + (week - 1) * 7);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+  const f = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+  return { start: f(monday), end: f(sunday) };
+}
+function rangeFromWeek(v){
+  const m = /^(\d{4})-W(\d{2})$/.exec(v || '');
+  if(!m) return null;
+  return getDateRangeOfISOWeek(+m[1], +m[2]);
+}
+function rangeFromMonth(v){
+  const m = /^(\d{4})-(\d{2})$/.exec(v || '');
+  if(!m) return null;
+  const y = +m[1], mo = +m[2];
+  const last = new Date(y, mo, 0).getDate();
+  return { start: `${v}-01`, end: `${v}-${pad(last)}` };
+}
+
+/* ---------- Settings (#7 #8: cấu hình thay vì hardcode) ---------- */
+const DEFAULT_SETTINGS = {
+  stdIn: '08:00', stdOut: '17:00',
+  breakEnabled: true,
+  breakStart: '11:30', breakEnd: '13:30',
+  breakMinutes: 60, breakMinWork: 4,
+  syncUrl: '', syncEnabled: false
+};
+function getSettings(){ return Object.assign({}, DEFAULT_SETTINGS, loadJSON(K.settings, {})); }
+
+/* ---------- Data getters (#14: gọi 1 lần mỗi hàm render) ---------- */
+function getEmployees(){ return loadJSON(K.employees, []); }
+function getCategories(){ return loadJSON(K.categories, []); }
+function getAttRecords(){ return loadJSON(K.attendance, []); }
+function getTransactions(){ return loadJSON(K.transactions, []); }
+function empById(id){ return getEmployees().find(e => e.id === id) || null; }
+function catById(id){ return getCategories().find(c => c.id === id) || null; }
+
+/* ---------- #7: tính giờ công, trừ nghỉ trưa theo khung giờ thực ---------- */
+function computeWork(timeIn, timeOut, s){
+  let inM = timeToMin(timeIn), outM = timeToMin(timeOut);
+  const crossesMidnight = outM <= inM;
+  if (crossesMidnight) outM += 1440;                    // ca đêm
+  const grossMin = outM - inM;
+  let breakMin = 0;
+  if (s.breakEnabled && grossMin / 60 >= (s.breakMinWork || 0)){
+    const bs = timeToMin(s.breakStart), be = timeToMin(s.breakEnd);
+    const overlap = Math.min(outM, be) - Math.max(inM, bs);
+    if (overlap > 0) breakMin = Math.min(s.breakMinutes || 0, overlap);
+  }
+  const lateMin  = Math.max(0, timeToMin(timeIn) - timeToMin(s.stdIn));
+  const earlyMin = crossesMidnight ? 0 : Math.max(0, timeToMin(s.stdOut) - timeToMin(timeOut));
+  return { grossMin, breakMin, netMin: Math.max(0, grossMin - breakMin), lateMin, earlyMin, crossesMidnight };
+}
+
+/* ---------- Toast ---------- */
+let toastTimer = null;
+function toast(msg, type){
+  const el = $('#toastEl');
+  el.textContent = msg;
+  el.className = 'toast show' + (type === 'err' ? ' err' : type === 'ok' ? ' ok' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* ---------- Modal (#17: đóng bằng overlay / Escape, custom confirm) ---------- */
+let modalOnClose = null;
+function openModal(title, html){
+  $('#modalTitle').textContent = title;
+  $('#modalBody').innerHTML = html;
+  $('#modalOverlay').classList.add('show');
+}
+function closeModal(){
+  $('#modalOverlay').classList.remove('show');
+  $('#modalBody').innerHTML = '';
+  if (modalOnClose){ const f = modalOnClose; modalOnClose = null; f(); }
+}
+$('#modalCloseBtn').addEventListener('click', closeModal);
+$('#modalOverlay').addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#modalOverlay').classList.contains('show')) closeModal();
+});
+function showConfirm(title, message, okLabel){
+  return new Promise(resolve => {
+    let settled = false;
+    const done = v => { if(!settled){ settled = true; resolve(v); } };
+    modalOnClose = () => done(false);
+    openModal(title, `
+      <p class="confirm-msg">${esc(message)}</p>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="cfCancel">Huỷ</button>
+        <button type="button" class="btn danger" id="cfOk">${esc(okLabel || 'Xoá')}</button>
+      </div>`);
+    $('#cfCancel').onclick = () => { modalOnClose = null; closeModal(); done(false); };
+    $('#cfOk').onclick = () => { modalOnClose = null; closeModal(); done(true); };
+  });
+}
+
+/* ============================================================
+   #5: SYNC — hàng chờ offline + minh bạch trạng thái
+============================================================ */
+let syncBusy = false;
+function updateSyncInfo(){
+  const q = loadJSON(K.syncQueue, []);
+  const s = getSettings();
+  $('#syncQueueCount').textContent = q.length;
+  const info = $('#syncPendingInfo');
+  if (!s.syncUrl){
+    info.textContent = q.length
+      ? `☁️ Hàng chờ sync: ${q.length} bản ghi (chưa cấu hình URL trong Cài đặt)`
+      : '☁️ Sync chưa cấu hình (bật trong ⚙️ Cài đặt nếu cần)';
+  } else if (!s.syncEnabled){
+    info.textContent = `☁️ Sync đang tắt · Hàng chờ: ${q.length} bản ghi`;
+  } else {
+    info.textContent = q.length
+      ? `☁️ Đang gửi / hàng chờ: ${q.length} bản ghi`
+      : '☁️ Sync đang bật · không có bản ghi chờ';
+  }
+}
+function enqueueSync(rec){
+  const q = loadJSON(K.syncQueue, []);
+  q.push({ syncId: uid(), ts: Date.now(), payload: rec });
+  saveJSON(K.syncQueue, q);
+  updateSyncInfo();
+  const s = getSettings();
+  if (s.syncEnabled && s.syncUrl) flushSync(true);
+}
+async function flushSync(silent){
+  const s = getSettings();
+  const q = loadJSON(K.syncQueue, []);
+  if (syncBusy) return;
+  if (!s.syncUrl){ if(!silent) toast('Chưa cấu hình URL sync', 'err'); return; }
+  if (!q.length){ if(!silent) toast('Không có bản ghi nào chờ gửi'); return; }
+  syncBusy = true;
+  let sent = 0;
+  const remain = [];
+  for (const item of q){
+    try {
+      await fetch(s.syncUrl, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(item.payload)
+      });
+      sent++;
+    } catch(e){ remain.push(item); }   // lỗi mạng → giữ lại trong hàng chờ
+  }
+  saveJSON(K.syncQueue, remain);
+  syncBusy = false;
+  updateSyncInfo();
+  if (sent || !silent){
+    toast(`Đã gửi ${sent} bản ghi · không xác minh được phản hồi (no-cors)` +
+          (remain.length ? ` · còn chờ ${remain.length}` : ''), sent ? 'ok' : 'err');
+  }
+}
+$('#syncFlushBtn').addEventListener('click', () => flushSync(false));
+
+/* ============================================================
+   TAB SWITCHING
+============================================================ */
+function switchTab(name){
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.dataset.page === name));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  if (name === 'att'){ refreshEmployeeOptions(); renderAttList(); }
+  if (name === 'exp'){ refreshCategoryOptions(); renderTxList(); }
+  if (name === 'emp'){ renderEmpList(); }
+  if (name === 'cat'){ renderCatList(); }
+  if (name === 'set'){ loadSettingsForm(); updateSyncInfo(); }
+  window.scrollTo({ top: 0 });
+}
+document.querySelectorAll('.nav-btn').forEach(b =>
+  b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+/* ============================================================
+   CHẤM CÔNG
+============================================================ */
+let editingAttId = null;
+
+function refreshEmployeeOptions(){
+  const sel = $('#attEmp');
+  const cur = sel.value;
+  const emps = getEmployees();
+  sel.innerHTML = '<option value="">— Chọn nhân viên —</option>' +
+    emps.map(e => `<option value="${esc(e.id)}">${esc(e.code)} · ${esc(e.name)}</option>`).join('');
+  if (cur && emps.some(e => e.id === cur)) sel.value = cur;
+}
+
+function renderAttList(){
+  const date = $('#attListDate').value || getTodayStr();
+  const recs = getAttRecords()                       /* #14: parse 1 lần */
+    .filter(r => r.date === date)
+    .sort((a, b) => a.timeIn < b.timeIn ? -1 : 1);
+  const s = getSettings();
+  const body = $('#attListBody');
+  if (!recs.length){
+    body.innerHTML = `<div class="empty">Chưa có bản ghi ngày ${esc(fmtDateVN(date))}</div>`;
+    return;
+  }
+  body.innerHTML = recs.map(r => {
+    const e = empById(r.employeeId);                 /* #2: NV đã xoá vẫn hiện */
+    const name = e ? e.name : (r.employeeName || r.employeeCode || '—');
+    const code = e ? e.code : (r.employeeCode || '');
+    const w = computeWork(r.timeIn, r.timeOut, s);
+    const badges =
+      (w.lateMin > 0 ? `<span class="badge late">Muộn ${fmtH(w.lateMin)}</span> ` : '') +
+      (w.earlyMin > 0 ? `<span class="badge early">Về sớm ${fmtH(w.earlyMin)}</span>` : '') +
+      (!e ? ' <span class="badge warn">NV đã xoá</span>' : '');
+    return `<div class="item">
+      <div style="min-width:0">
+        <div class="item-title">${esc(code)} · ${esc(name)}</div>
+        <div class="item-sub">🕐 ${esc(r.timeIn)} → ${esc(r.timeOut)}${w.crossesMidnight ? ' (qua đêm)' : ''}
+          · <b>Công: ${fmtH(w.netMin)}</b>${w.breakMin ? ` · trừ nghỉ ${w.breakMin}p` : ''}
+          ${r.note ? '<br>📝 ' + esc(r.note) : ''}</div>
+        <div style="margin-top:4px">${badges}</div>
+      </div>
+      <div class="item-actions">
+        <button type="button" class="icon-btn" data-edit-att="${esc(r.id)}" aria-label="Sửa">✏️</button>
+        <button type="button" class="icon-btn del" data-del-att="${esc(r.id)}" aria-label="Xoá">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+$('#attListBody').addEventListener('click', e => {
+  const editId = e.target.getAttribute('data-edit-att');
+  const delId = e.target.getAttribute('data-del-att');
+  if (editId) startEditAtt(editId);
+  if (delId) deleteAtt(delId);
+});
+
+/* #11: SỬA bản ghi chấm công */
+function startEditAtt(id){
+  const rec = getAttRecords().find(r => r.id === id);
+  if (!rec) return;
+  editingAttId = id;
+  refreshEmployeeOptions();
+  $('#attDate').value = rec.date;
+  $('#attEmp').value = rec.employeeId || '';
+  $('#attIn').value = rec.timeIn;
+  $('#attOut').value = rec.timeOut;
+  $('#attNote').value = rec.note || '';
+  $('#attEditBadge').classList.add('show');
+  switchTab('att');
+  $('#attSaveBtn').textContent = '💾 Cập nhật ca làm';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function resetAttForm(){
+  editingAttId = null;
+  $('#attEditBadge').classList.remove('show');
+  $('#attSaveBtn').textContent = '💾 Lưu dữ liệu ca làm';
+  $('#attNote').value = '';
+  $('#attIn').value = nowTimeStr();
+  $('#attOut').value = nowTimeStr();
+}
+$('#attCancelEdit').addEventListener('click', resetAttForm);
+
+async function deleteAtt(id){
+  const ok = await showConfirm('Xoá bản ghi chấm công', 'Bản ghi sẽ bị xoá vĩnh viễn. Tiếp tục?', 'Xoá');
+  if (!ok) return;
+  saveJSON(K.attendance, getAttRecords().filter(r => r.id !== id));
+  renderAttList();
+  toast('Đã xoá bản ghi', 'ok');
+}
+
+$('#attSaveBtn').addEventListener('click', () => {
+  const empId = $('#attEmp').value;
+  const date = $('#attDate').value;
+  const tin = $('#attIn').value, tout = $('#attOut').value;
+  if (!empId) return toast('Vui lòng chọn nhân viên', 'err');
+  if (!date) return toast('Vui lòng chọn ngày', 'err');
+  if (!tin || !tout) return toast('Vui lòng nhập giờ vào / giờ ra', 'err');
+
+  const emp = empById(empId);
+  if (!emp) return toast('Nhân viên không tồn tại', 'err');
+  const s = getSettings();
+  const w = computeWork(tin, tout, s);
+
+  const list = getAttRecords();
+  if (editingAttId){
+    const i = list.findIndex(r => r.id === editingAttId);
+    if (i < 0) return toast('Không tìm thấy bản ghi', 'err');
+    list[i] = Object.assign({}, list[i], {
+      employeeId: emp.id, employeeCode: emp.code, employeeName: emp.name,
+      date, timeIn: tin, timeOut: tout,
+      note: $('#attNote').value.trim(),
+      grossMin: w.grossMin, breakMin: w.breakMin, netMin: w.netMin
     });
+    saveJSON(K.attendance, list);
+    toast('Đã cập nhật ca làm', 'ok');
+    resetAttForm();
+  } else {
+    const rec = {
+      id: uid(), employeeId: emp.id, employeeCode: emp.code, employeeName: emp.name,
+      date, timeIn: tin, timeOut: tout, note: $('#attNote').value.trim(),
+      grossMin: w.grossMin, breakMin: w.breakMin, netMin: w.netMin,
+      createdAt: Date.now()
+    };
+    list.push(rec);
+    saveJSON(K.attendance, list);
+    toast('Đã lưu ca làm', 'ok');
+    $('#attNote').value = '';
+    enqueueSync(rec);
+  }
+  renderAttList();
+});
+
+$('#attNowIn').addEventListener('click', () => $('#attIn').value = nowTimeStr());
+$('#attNowOut').addEventListener('click', () => $('#attOut').value = nowTimeStr());
+$('#attListReload').addEventListener('click', () => { renderAttList(); toast('Đã tải lại'); });
+$('#attListDate').addEventListener('change', renderAttList);
+
+/* ---------- Báo cáo chấm công ---------- */
+let attRangeMode = 'week';
+let lastAttReport = null;
+$('#attRangeWeek').addEventListener('click', () => {
+  attRangeMode = 'week';
+  $('#attRangeWeek').classList.add('on'); $('#attRangeMonth').classList.remove('on');
+  $('#attWeekWrap').style.display = ''; $('#attMonthWrap').style.display = 'none';
+});
+$('#attRangeMonth').addEventListener('click', () => {
+  attRangeMode = 'month';
+  $('#attRangeMonth').classList.add('on'); $('#attRangeWeek').classList.remove('on');
+  $('#attMonthWrap').style.display = ''; $('#attWeekWrap').style.display = 'none';
+});
+
+$('#attRunBtn').addEventListener('click', () => {
+  const range = attRangeMode === 'week'
+    ? rangeFromWeek($('#attWeekInput').value)
+    : rangeFromMonth($('#attMonthInput').value);
+  if (!range) return toast('Vui lòng chọn tuần / tháng hợp lệ', 'err');
+
+  const recs = getAttRecords()
+    .filter(r => r.date >= range.start && r.date <= range.end)
+    .sort((a, b) => a.date < b.date ? -1 : 1);
+  const s = getSettings();
+  const empMap = new Map(getEmployees().map(e => [e.id, e]));
+  const summaryMap = new Map();
+
+  for (const r of recs){
+    let g = summaryMap.get(r.employeeId);
+    if (!g){
+      const e = empMap.get(r.employeeId);
+      g = {
+        name: e ? e.name : (r.employeeName || r.employeeCode || '—'),
+        code: e ? e.code : (r.employeeCode || '—'),
+        deleted: !e, days: 0, min: 0, late: 0, early: 0
+      };
+      summaryMap.set(r.employeeId, g);
+    }
+    const w = computeWork(r.timeIn, r.timeOut, s);
+    g.days++; g.min += r.netMin || 0; g.late += w.lateMin; g.early += w.earlyMin;
+  }
+  lastAttReport = { range, recs, summary: [...summaryMap.values()] };
+
+  const out = $('#attReportOut');
+  if (!recs.length){
+    out.innerHTML = '<div class="empty">Không có dữ liệu trong khoảng này</div>';
+    return;
+  }
+  const sum = [...summaryMap.values()];
+  const tDays = sum.reduce((a, g) => a + g.days, 0);
+  const tMin = sum.reduce((a, g) => a + g.min, 0);
+  out.innerHTML = `
+    <div class="range-lbl">📅 ${esc(fmtDateVN(range.start))} → ${esc(fmtDateVN(range.end))} · ${recs.length} bản ghi</div>
+    <div class="table-wrap"><table class="report">
+      <thead><tr><th>Mã</th><th>Nhân viên</th><th class="num">Số công</th><th class="num">Tổng giờ</th><th class="num">Đi muộn</th><th class="num">Về sớm</th></tr></thead>
+      <tbody>${sum.map(g => `<tr>
+        <td>${esc(g.code)}${g.deleted ? ' <span class="badge warn">đã xoá</span>' : ''}</td>
+        <td>${esc(g.name)}</td>
+        <td class="num">${g.days}</td>
+        <td class="num">${fmtH(g.min)}</td>
+        <td class="num">${g.late ? fmtH(g.late) : '—'}</td>
+        <td class="num">${g.early ? fmtH(g.early) : '—'}</td>
+      </tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="2"><b>Tổng cộng</b></td><td class="num"><b>${tDays}</b></td><td class="num"><b>${fmtH(tMin)}</b></td><td colspan="2"></td></tr></tfoot>
+    </table></div>`;
+});
+
+/* #16: CSV có escape injection + dòng tổng */
+function downloadCSV(filename, rows){
+  const csv = '\uFEFF' + rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+$('#attCsvBtn').addEventListener('click', () => {
+  if (!lastAttReport) return toast('Hãy bấm "Tổng hợp dữ liệu" trước', 'err');
+  const { range, recs, summary } = lastAttReport;
+  const rows = [
+    ['BÁO CÁO CHẤM CÔNG', `${fmtDateVN(range.start)} - ${fmtDateVN(range.end)}`],
+    [],
+    ['Mã NV', 'Họ tên', 'Ngày', 'Giờ vào', 'Giờ ra', 'Giờ công', 'Nghỉ trưa (phút)', 'Đi muộn (phút)', 'Về sớm (phút)', 'Ghi chú']
+  ];
+  const s = getSettings();
+  for (const r of recs){
+    const w = computeWork(r.timeIn, r.timeOut, s);
+    const e = empById(r.employeeId);
+    rows.push([
+      e ? e.code : (r.employeeCode || ''),
+      (e ? e.name : (r.employeeName || '')) + (e ? '' : ' (đã xoá)'),
+      r.date, r.timeIn, r.timeOut,
+      (w.netMin / 60).toFixed(2), w.breakMin, w.lateMin, w.earlyMin, r.note || ''
+    ]);
+  }
+  rows.push([]);
+  rows.push(['TỔNG HỢP', 'Số công', 'Tổng giờ']);
+  for (const g of summary) rows.push([g.code, g.name, g.days, fmtH(g.min)]);
+  downloadCSV(`att-report_${range.start}_${range.end}.csv`, rows);
+  toast('Đã xuất CSV', 'ok');
+});
+
+/* ============================================================
+   CHI TIÊU — OCR
+============================================================ */
+let ocrFileCurrent = null;
+let ocrUrlCurrent = null;
+let lastOcrParsed = null;
+
+function setOcrPreview(file){
+  clearOcrPreview(false);
+  ocrFileCurrent = file;
+  ocrUrlCurrent = URL.createObjectURL(file);
+  $('#ocrPreviewImg').src = ocrUrlCurrent;
+  $('#ocrPreviewWrap').style.display = '';
+}
+function clearOcrPreview(clearResult = true){
+  /* #15: revoke object URL để tránh memory leak */
+  if (ocrUrlCurrent){ URL.revokeObjectURL(ocrUrlCurrent); ocrUrlCurrent = null; }
+  ocrFileCurrent = null;
+  $('#ocrPreviewWrap').style.display = 'none';
+  $('#ocrPreviewImg').src = '';
+  $('#ocrFile').value = '';
+  $('#ocrCamFile').value = '';
+  if (clearResult){ $('#ocrResult').innerHTML = ''; lastOcrParsed = null; }
+}
+$('#ocrPickBtn').addEventListener('click', () => $('#ocrFile').click());
+$('#ocrCamBtn').addEventListener('click', () => $('#ocrCamFile').click());
+$('#ocrFile').addEventListener('change', e => { if (e.target.files[0]) setOcrPreview(e.target.files[0]); });
+$('#ocrCamFile').addEventListener('change', e => { if (e.target.files[0]) setOcrPreview(e.target.files[0]); });
+$('#ocrClearBtn').addEventListener('click', () => clearOcrPreview());
+
+function setOcrProgress(p, txt){
+  $('#ocrProgress').classList.toggle('show', p > 0);
+  $('#ocrProgressBar').style.width = p + '%';
+  $('#ocrProgressText').textContent = txt || '';
+}
+
+/* #9: parser biên lai cải tiến — bỏ dấu để bắt keyword tiếng Việt OCR lỗi */
+function stripDiacritics(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+}
+function parseReceiptText(text){
+  const res = { amount: null, date: null, party: null };
+  const lines = String(text || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const NUM_RE = /(\d{1,3}(?:[.,]\d{3})+|\d{4,})/g;
+
+  /* 1) Số tiền: ưu tiên dòng có keyword */
+  const AMT_KEYS = ['so tien', 'amount', 'gia tri', 'tong tien', 'tong so', 'gia tri giao dich', 'sotien', 'so tien chuyen'];
+  let found = null;
+  for (const line of lines){
+    const ln = stripDiacritics(line);
+    if (AMT_KEYS.some(k => ln.includes(k))){
+      const nums = [...line.matchAll(NUM_RE)]
+        .map(m => parseInt(m[1].replace(/[.,]/g, ''), 10))
+        .filter(n => n > 0);
+      if (nums.length){ found = Math.max(...nums); break; }
+    }
+  }
+  /* 2) Fallback: số lớn nhất ≥ 1,000 trong toàn bộ text */
+  if (found === null){
+    const all = [];
+    for (const line of lines){
+      for (const m of line.matchAll(NUM_RE)){
+        const n = parseInt(m[1].replace(/[.,]/g, ''), 10);
+        if (n >= 1000) all.push(n);
+      }
+    }
+    if (all.length) found = Math.max(...all);
+  }
+  res.amount = found;
+
+  /* 3) Ngày dd/mm/yyyy */
+  const dm = String(text).match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/);
+  if (dm){
+    let d = +dm[1], mo = +dm[2], y = +dm[3];
+    if (y < 100) y += 2000;
+    if (d > 12 && mo <= 12){ const t = d; d = mo; mo = t; }   // ưu tiên dd/mm kiểu VN
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31 && y >= 2000 && y <= 2100){
+      res.date = `${y}-${pad(mo)}-${pad(d)}`;
+    }
+  }
+
+  /* 4) Người nhận / người chuyển */
+  const PARTY_KEYS = ['nguoi nhan', 'nguoi chuyen', 'nguoi huong', 'tai khoan', 'account', 'den tai khoan', 'chuyen den'];
+  for (const line of lines){
+    const ln = stripDiacritics(line);
+    for (const k of PARTY_KEYS){
+      const idx = ln.indexOf(k);
+      if (idx >= 0){
+        let rest = line.slice(idx + k.length).replace(/^[\s:.\-–()]+/, '');
+        rest = rest.replace(/\d{4,}[\d\s.]*$/,'').trim();           // bỏ số TK cuối dòng
+        if (rest.length >= 3 && rest.length <= 60){ res.party = rest; break; }
+      }
+    }
+    if (res.party) break;
+  }
+  /* 5) Fallback: dòng CHỮ IN HOA có vẻ là tên riêng */
+  if (!res.party){
+    const SKIP = /NGAN HANG|BANK|VIETCOMBANK|TECHCOMBANK|MB BANK|BIDV|VPBANK|ACB|VIETINBANK|GIAO DICH|THANH CONG|SUCCESS|BIEN LA|HOA DON|RECEIPT|INVOICE/i;
+    for (const line of lines){
+      if (/^[\p{Lu}\s]{5,50}$/u.test(line) && !SKIP.test(line) && !stripDiacritics(line).includes('ngan hang')){
+        res.party = line.trim(); break;
+      }
+    }
+  }
+  return res;
+}
+
+$('#ocrRunBtn').addEventListener('click', async () => {
+  if (!ocrFileCurrent) return toast('Hãy chọn hoặc chụp ảnh trước', 'err');
+  if (typeof Tesseract === 'undefined') return toast('Không nạp được thư viện OCR (kiểm tra mạng)', 'err');
+  const btn = $('#ocrRunBtn');
+  btn.disabled = true;
+  setOcrProgress(2, 'Đang nạp mô hình OCR...');
+  try {
+    const ret = await Tesseract.recognize(ocrFileCurrent, 'vie+eng', {
+      logger: m => {
+        if (m.status === 'recognizing text'){
+          setOcrProgress(Math.round((m.progress || 0) * 100), 'Đang nhận diện chữ...');
+        } else if (m.status){
+          setOcrProgress(2, 'Đang chuẩn bị (' + m.status + ')...');
+        }
+      }
+    });
+    setOcrProgress(0, '');
+    lastOcrParsed = parseReceiptText(ret.data && ret.data.text ? ret.data.text : '');
+    renderOcrResult();
+  } catch(err){
+    setOcrProgress(0, '');
+    toast('Lỗi OCR: ' + (err && err.message ? err.message : err), 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+function renderOcrResult(){
+  const p = lastOcrParsed || {};
+  const hasAny = p.amount || p.date || p.party;
+  $('#ocrResult').innerHTML = `
+    <div class="ocr-result">
+      <div class="row"><b>💵 Số tiền:</b> <span>${p.amount ? esc(fmtMoney(p.amount)) : '<i>không nhận diện được</i>'}</span></div>
+      <div class="row"><b>📅 Ngày:</b> <span>${p.date ? esc(fmtDateVN(p.date)) : '<i>không nhận diện được</i>'}</span></div>
+      <div class="row"><b>👤 Người nhận:</b> <span>${p.party ? esc(p.party) : '<i>không nhận diện được</i>'}</span></div>
+      ${hasAny
+        ? '<div style="margin-top:10px"><button type="button" class="btn primary small" id="ocrApplyBtn">✅ Áp dụng vào form giao dịch</button></div>'
+        : '<div class="hint">Không trích xuất được dữ liệu — hãy nhập thủ công bên dưới.</div>'}
+    </div>`;
+  const applyBtn = $('#ocrApplyBtn');
+  if (applyBtn){
+    applyBtn.addEventListener('click', () => {
+      if (p.amount) $('#txAmount').value = p.amount;
+      if (p.date) $('#txDate').value = p.date;
+      if (p.party) $('#txParty').value = p.party;
+      toast('Đã áp dụng kết quả OCR vào form', 'ok');
+    });
+  }
+}
+
+/* ---------- Form giao dịch ---------- */
+let editingTxId = null;
+
+function refreshCategoryOptions(){
+  const sel = $('#txCat');
+  const cur = sel.value;
+  const type = $('#txType').value || 'expense';
+  const cats = getCategories().filter(c => c.type === type);
+  sel.innerHTML = '<option value="">— Chọn danh mục —</option>' +
+    cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  if (cur && cats.some(c => c.id === cur)) sel.value = cur;
+}
+$('#txType').addEventListener('change', refreshCategoryOptions);
+
+function renderTxList(){
+  const date = $('#txListDate').value || getTodayStr();
+  const txs = getTransactions()                      /* #14: parse 1 lần */
+    .filter(t => t.date === date)
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const body = $('#txListBody');
+  if (!txs.length){
+    body.innerHTML = `<div class="empty">Chưa có giao dịch ngày ${esc(fmtDateVN(date))}</div>`;
+    return;
+  }
+  let dayIn = 0, dayOut = 0;
+  body.innerHTML = txs.map(t => {
+    const c = catById(t.categoryId);
+    const catName = c ? c.name : (t.categoryName || '—');
+    const isExp = t.type === 'expense';
+    if (isExp) dayOut += +t.amount || 0; else dayIn += +t.amount || 0;
+    return `<div class="item">
+      <div style="min-width:0">
+        <div class="item-title">${esc(catName)} <span class="badge ${isExp ? 'exp' : 'inc'}">${isExp ? 'Chi' : 'Thu'}</span></div>
+        <div class="item-sub">${t.party ? esc(t.party) + '<br>' : ''}${t.note ? '📝 ' + esc(t.note) : ''}</div>
+      </div>
+      <div class="item-actions">
+        <div class="item-right">
+          <div class="money ${isExp ? 'exp' : 'inc'}">${isExp ? '−' : '+'}${esc(fmtMoney(t.amount))}</div>
+        </div>
+        <button type="button" class="icon-btn" data-edit-tx="${esc(t.id)}" aria-label="Sửa">✏️</button>
+        <button type="button" class="icon-btn del" data-del-tx="${esc(t.id)}" aria-label="Xoá">🗑️</button>
+      </div>
+    </div>`;
+  }).join('') +
+  `<div class="range-lbl" style="margin-top:10px">Tổng ngày: <b style="color:var(--ok)">+${esc(fmtMoney(dayIn))}</b> · <b style="color:var(--danger)">−${esc(fmtMoney(dayOut))}</b></div>`;
+}
+$('#txListBody').addEventListener('click', e => {
+  const editId = e.target.getAttribute('data-edit-tx');
+  const delId = e.target.getAttribute('data-del-tx');
+  if (editId) startEditTx(editId);
+  if (delId) deleteTx(delId);
+});
+
+/* #11: SỬA giao dịch */
+function startEditTx(id){
+  const t = getTransactions().find(x => x.id === id);
+  if (!t) return;
+  editingTxId = id;
+  $('#txType').value = t.type;
+  refreshCategoryOptions();
+  $('#txDate').value = t.date;
+  $('#txCat').value = t.categoryId || '';
+  $('#txAmount').value = t.amount;
+  $('#txParty').value = t.party || '';
+  $('#txNote').value = t.note || '';
+  $('#txEditBadge').classList.add('show');
+  switchTab('exp');
+  $('#txSaveBtn').textContent = '💾 Cập nhật giao dịch';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function resetTxForm(){
+  editingTxId = null;
+  $('#txEditBadge').classList.remove('show');
+  $('#txSaveBtn').textContent = '💾 Lưu giao dịch';
+  $('#txAmount').value = '';
+  $('#txParty').value = '';
+  $('#txNote').value = '';
+}
+$('#txCancelEdit').addEventListener('click', resetTxForm);
+
+async function deleteTx(id){
+  const ok = await showConfirm('Xoá giao dịch', 'Giao dịch sẽ bị xoá vĩnh viễn. Tiếp tục?', 'Xoá');
+  if (!ok) return;
+  saveJSON(K.transactions, getTransactions().filter(t => t.id !== id));
+  renderTxList();
+  toast('Đã xoá giao dịch', 'ok');
+}
+
+$('#txSaveBtn').addEventListener('click', () => {
+  const type = $('#txType').value;
+  const date = $('#txDate').value;
+  const catId = $('#txCat').value;
+  const amount = parseFloat($('#txAmount').value);
+  if (!date) return toast('Vui lòng chọn ngày', 'err');
+  if (!catId) return toast('Vui lòng chọn danh mục', 'err');
+  if (!amount || amount <= 0) return toast('Số tiền phải lớn hơn 0', 'err');
+
+  const cat = catById(catId);
+  if (!cat) return toast('Danh mục không tồn tại', 'err');
+
+  const list = getTransactions();
+  if (editingTxId){
+    const i = list.findIndex(t => t.id === editingTxId);
+    if (i < 0) return toast('Không tìm thấy giao dịch', 'err');
+    list[i] = Object.assign({}, list[i], {
+      type, date, categoryId: cat.id, categoryName: cat.name,
+      amount, party: $('#txParty').value.trim(), note: $('#txNote').value.trim()
+    });
+    saveJSON(K.transactions, list);
+    toast('Đã cập nhật giao dịch', 'ok');
+  } else {
+    list.push({
+      id: uid(), type, date, categoryId: cat.id, categoryName: cat.name,
+      amount, party: $('#txParty').value.trim(), note: $('#txNote').value.trim(),
+      createdAt: Date.now()
+    });
+    saveJSON(K.transactions, list);
+    toast('Đã lưu giao dịch', 'ok');
+  }
+  resetTxForm();
+  renderTxList();
+});
+
+$('#txListReload').addEventListener('click', () => { renderTxList(); toast('Đã tải lại'); });
+$('#txListDate').addEventListener('change', renderTxList);
+
+/* ---------- Báo cáo chi tiêu ---------- */
+let expRangeMode = 'week';
+let lastExpReport = null;
+$('#expRangeWeek').addEventListener('click', () => {
+  expRangeMode = 'week';
+  $('#expRangeWeek').classList.add('on'); $('#expRangeMonth').classList.remove('on');
+  $('#expWeekWrap').style.display = ''; $('#expMonthWrap').style.display = 'none';
+});
+$('#expRangeMonth').addEventListener('click', () => {
+  expRangeMode = 'month';
+  $('#expRangeMonth').classList.add('on'); $('#expRangeWeek').classList.remove('on');
+  $('#expMonthWrap').style.display = ''; $('#expWeekWrap').style.display = 'none';
+});
+
+$('#expRunBtn').addEventListener('click', () => {
+  const range = expRangeMode === 'week'
+    ? rangeFromWeek($('#expWeekInput').value)
+    : rangeFromMonth($('#expMonthInput').value);
+  if (!range) return toast('Vui lòng chọn tuần / tháng hợp lệ', 'err');
+
+  const txs = getTransactions()
+    .filter(t => t.date >= range.start && t.date <= range.end)
+    .sort((a, b) => a.date < b.date ? -1 : 1);
+
+  const byCat = new Map();
+  let incTotal = 0, expTotal = 0;
+  for (const t of txs){
+    const key = t.type + '|' + (t.categoryId || t.categoryName || '');
+    let g = byCat.get(key);
+    if (!g){
+      g = { type: t.type, name: t.categoryName || (catById(t.categoryId) || {}).name || '—', total: 0, count: 0 };
+      byCat.set(key, g);
+    }
+    g.total += +t.amount || 0;
+    g.count++;
+    if (t.type === 'expense') expTotal += +t.amount || 0;
+    else incTotal += +t.amount || 0;
+  }
+  lastExpReport = { range, txs, byCat: [...byCat.values()], incTotal, expTotal };
+
+  const out = $('#expReportOut');
+  if (!txs.length){
+    out.innerHTML = '<div class="empty">Không có giao dịch trong khoảng này</div>';
+    return;
+  }
+  const catTable = list => {
+    if (!list.length) return '<div class="empty">Không có</div>';
+    return `<div class="table-wrap"><table class="report">
+      <thead><tr><th>Danh mục</th><th class="num">Số GD</th><th class="num">Tổng</th></tr></thead>
+      <tbody>${list.map(g => `<tr><td>${esc(g.name)}</td><td class="num">${g.count}</td><td class="num">${esc(fmtMoney(g.total))}</td></tr>`).join('')}</tbody>
+    </table></div>`;
+  };
+  out.innerHTML = `
+    <div class="range-lbl">📅 ${esc(fmtDateVN(range.start))} → ${esc(fmtDateVN(range.end))} · ${txs.length} giao dịch</div>
+    <div class="stats">
+      <div class="stat"><div class="lbl">Tổng thu</div><div class="val inc">+${esc(fmtMoney(incTotal))}</div></div>
+      <div class="stat"><div class="lbl">Tổng chi</div><div class="val exp">−${esc(fmtMoney(expTotal))}</div></div>
+      <div class="stat"><div class="lbl">Chênh lệch</div><div class="val">${esc(fmtMoney(incTotal - expTotal))}</div></div>
+    </div>
+    <h3>📉 Chi tiêu theo danh mục</h3>
+    ${catTable(lastExpReport.byCat.filter(g => g.type === 'expense').sort((a, b) => b.total - a.total))}
+    <h3>📈 Thu nhập theo danh mục</h3>
+    ${catTable(lastExpReport.byCat.filter(g => g.type === 'income').sort((a, b) => b.total - a.total))}`;
+});
+
+$('#expCsvBtn').addEventListener('click', () => {
+  if (!lastExpReport) return toast('Hãy bấm "Tổng hợp dữ liệu" trước', 'err');
+  const { range, txs, byCat, incTotal, expTotal } = lastExpReport;
+  const rows = [
+    ['BÁO CÁO CHI TIÊU', `${fmtDateVN(range.start)} - ${fmtDateVN(range.end)}`],
+    [],
+    ['Ngày', 'Loại', 'Danh mục', 'Số tiền (VNĐ)', 'Người nhận / Nội dung', 'Ghi chú']
+  ];
+  for (const t of txs){
+    rows.push([t.date, t.type === 'expense' ? 'Chi tiêu' : 'Thu nhập',
+      t.categoryName || '', t.amount, t.party || '', t.note || '']);
+  }
+  rows.push([]);
+  rows.push(['TỔNG THU', incTotal]);
+  rows.push(['TỔNG CHI', expTotal]);
+  rows.push(['CHÊNH LỆCH', incTotal - expTotal]);
+  rows.push([]);
+  rows.push(['THEO DANH MỤC', 'Số GD', 'Tổng']);
+  for (const g of byCat) rows.push([`${g.type === 'expense' ? 'Chi' : 'Thu'}: ${g.name}`, g.count, g.total]);
+  downloadCSV(`expense-report_${range.start}_${range.end}.csv`, rows);
+  toast('Đã xuất CSV', 'ok');
+});
+
+/* ============================================================
+   NHÂN SỰ  (#2 #3: id nội bộ giữ liên kết, check trùng mã cả khi sửa)
+============================================================ */
+let editingEmpId = null;
+
+function renderEmpList(){
+  const emps = getEmployees();
+  const box = $('#empList');
+  if (!emps.length){
+    box.innerHTML = '<div class="empty">Chưa có nhân viên nào. Bấm "＋ Thêm NV" để tạo.</div>';
+    return;
+  }
+  box.innerHTML = emps.map(e => `
+    <div class="item">
+      <div>
+        <div class="item-title"><span class="badge pri">${esc(e.code)}</span> ${esc(e.name)}</div>
+        <div class="item-sub">${e.dept ? esc(e.dept) : 'Chưa có bộ phận'}</div>
+      </div>
+      <div class="item-actions">
+        <button type="button" class="icon-btn" data-edit-emp="${esc(e.id)}" aria-label="Sửa">✏️</button>
+        <button type="button" class="icon-btn del" data-del-emp="${esc(e.id)}" aria-label="Xoá">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+$('#empList').addEventListener('click', e => {
+  const editId = e.target.getAttribute('data-edit-emp');
+  const delId = e.target.getAttribute('data-del-emp');
+  if (editId) startEditEmp(editId);
+  if (delId) deleteEmp(delId);
+});
+
+$('#empAddToggle').addEventListener('click', () => {
+  const w = $('#empFormWrap');
+  w.style.display = w.style.display === 'none' ? '' : 'none';
+});
+
+/* #11 + #3: sửa nhân viên giữ nguyên id → dữ liệu cũ không mất */
+function startEditEmp(id){
+  const e = empById(id);
+  if (!e) return;
+  editingEmpId = id;
+  $('#empCode').value = e.code;
+  $('#empName').value = e.name;
+  $('#empDept').value = e.dept || '';
+  $('#empFormWrap').style.display = '';
+  $('#empEditBadge').classList.add('show');
+  $('#empSaveBtn').textContent = '💾 Cập nhật nhân viên';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function resetEmpForm(){
+  editingEmpId = null;
+  $('#empEditBadge').classList.remove('show');
+  $('#empSaveBtn').textContent = '💾 Lưu thông tin';
+  $('#empCode').value = ''; $('#empName').value = ''; $('#empDept').value = '';
+}
+$('#empCancelEdit').addEventListener('click', resetEmpForm);
+
+$('#empSaveBtn').addEventListener('click', () => {
+  const code = $('#empCode').value.trim().toUpperCase();
+  const name = $('#empName').value.trim();
+  const dept = $('#empDept').value.trim();
+  if (!code || !name) return toast('Mã và họ tên không được để trống', 'err');
+  const list = getEmployees();
+  /* #3: check trùng mã CẢ khi sửa (loại trừ chính nó) */
+  if (list.some(e => e.code === code && e.id !== editingEmpId)){
+    return toast('Mã nhân viên đã tồn tại', 'err');
+  }
+  if (editingEmpId){
+    const i = list.findIndex(e => e.id === editingEmpId);
+    if (i < 0) return toast('Không tìm thấy nhân viên', 'err');
+    list[i] = Object.assign({}, list[i], { code, name, dept });
+    saveJSON(K.employees, list);
+    toast('Đã cập nhật nhân viên', 'ok');
+  } else {
+    list.push({ id: uid(), code, name, dept, createdAt: Date.now() });
+    saveJSON(K.employees, list);
+    toast('Đã thêm nhân viên', 'ok');
+  }
+  resetEmpForm();
+  $('#empFormWrap').style.display = 'none';
+  refreshEmployeeOptions();
+  renderEmpList();
+  renderAttList();
+});
+
+/* #2: xoá nhân viên — bản ghi chấm công vẫn GIỮ (báo cáo hiển thị "(đã xoá)") */
+async function deleteEmp(id){
+  const e = empById(id);
+  if (!e) return;
+  const nRec = getAttRecords().filter(r => r.employeeId === id).length;
+  const msg = `Xoá nhân viên "${e.name}" (${e.code})?` +
+    (nRec ? `\nNhân viên này có ${nRec} bản ghi chấm công — các bản ghi đó vẫn được GIỮ và hiển thị kèm chú thích "(đã xoá)" trong báo cáo.` : '');
+  const ok = await showConfirm('Xoá nhân viên', msg, 'Xoá');
+  if (!ok) return;
+  saveJSON(K.employees, getEmployees().filter(x => x.id !== id));
+  refreshEmployeeOptions();
+  renderEmpList();
+  renderAttList();
+  toast('Đã xoá nhân viên (bản ghi cũ được giữ)', 'ok');
+}
+
+/* ============================================================
+   DANH MỤC
+============================================================ */
+let editingCatId = null;
+
+function renderCatList(){
+  const cats = getCategories();
+  const box = $('#catList');
+  if (!cats.length){
+    box.innerHTML = '<div class="empty">Chưa có danh mục nào.</div>';
+    return;
+  }
+  box.innerHTML = cats.map(c => `
+    <div class="item">
+      <div class="item-title">${esc(c.name)} <span class="badge ${c.type === 'expense' ? 'exp' : 'inc'}">${c.type === 'expense' ? 'Chi tiêu' : 'Thu nhập'}</span></div>
+      <div class="item-actions">
+        <button type="button" class="icon-btn" data-edit-cat="${esc(c.id)}" aria-label="Sửa">✏️</button>
+        <button type="button" class="icon-btn del" data-del-cat="${esc(c.id)}" aria-label="Xoá">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+$('#catList').addEventListener('click', e => {
+  const editId = e.target.getAttribute('data-edit-cat');
+  const delId = e.target.getAttribute('data-del-cat');
+  if (editId) startEditCat(editId);
+  if (delId) deleteCat(delId);
+});
+
+function startEditCat(id){
+  const c = catById(id);
+  if (!c) return;
+  editingCatId = id;
+  $('#catName').value = c.name;
+  $('#catType').value = c.type;
+  $('#catEditBadge').classList.add('show');
+  $('#catSaveBtn').textContent = '💾 Cập nhật danh mục';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function resetCatForm(){
+  editingCatId = null;
+  $('#catEditBadge').classList.remove('show');
+  $('#catSaveBtn').textContent = '💾 Lưu danh mục';
+  $('#catName').value = '';
+}
+$('#catCancelEdit').addEventListener('click', resetCatForm);
+
+$('#catSaveBtn').addEventListener('click', () => {
+  const name = $('#catName').value.trim();
+  const type = $('#catType').value;
+  if (!name) return toast('Tên danh mục không được trống', 'err');
+  const list = getCategories();
+  if (list.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== editingCatId)){
+    return toast('Danh mục đã tồn tại', 'err');
+  }
+  if (editingCatId){
+    const i = list.findIndex(c => c.id === editingCatId);
+    if (i < 0) return toast('Không tìm thấy danh mục', 'err');
+    list[i] = Object.assign({}, list[i], { name, type });
+    saveJSON(K.categories, list);
+    toast('Đã cập nhật danh mục', 'ok');
+  } else {
+    list.push({ id: uid(), name, type });
+    saveJSON(K.categories, list);
+    toast('Đã thêm danh mục', 'ok');
+  }
+  resetCatForm();
+  refreshCategoryOptions();
+  renderCatList();
+});
+
+$('#catQuickBtn').addEventListener('click', () => {
+  const name = $('#catQuickName').value.trim();
+  if (!name) return toast('Nhập tên danh mục', 'err');
+  const list = getCategories();
+  if (list.some(c => c.name.toLowerCase() === name.toLowerCase())){
+    return toast('Danh mục đã tồn tại', 'err');
+  }
+  list.push({ id: uid(), name, type: 'expense' });
+  saveJSON(K.categories, list);
+  $('#catQuickName').value = '';
+  refreshCategoryOptions();
+  renderCatList();
+  toast('⚡ Đã thêm nhanh danh mục', 'ok');
+});
+$('#catQuickName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#catQuickBtn').click(); });
+
+async function deleteCat(id){
+  const c = catById(id);
+  if (!c) return;
+  const used = getTransactions().filter(t => t.categoryId === id).length;
+  const msg = `Xoá danh mục "${c.name}"?` +
+    (used ? ` Đang có ${used} giao dịch dùng danh mục này — giao dịch vẫn giữ nguyên tên danh mục cũ.` : '');
+  const ok = await showConfirm('Xoá danh mục', msg, 'Xoá');
+  if (!ok) return;
+  saveJSON(K.categories, getCategories().filter(x => x.id !== id));
+  refreshCategoryOptions();
+  renderCatList();
+  toast('Đã xoá danh mục', 'ok');
+}
+
+/* ============================================================
+   CÀI ĐẶT
+============================================================ */
+function loadSettingsForm(){
+  const s = getSettings();
+  $('#setStdIn').value = s.stdIn;
+  $('#setStdOut').value = s.stdOut;
+  $('#setBreakOn').checked = s.breakEnabled;
+  $('#setBreakStart').value = s.breakStart;
+  $('#setBreakEnd').value = s.breakEnd;
+  $('#setBreakMin').value = s.breakMinutes;
+  $('#setBreakThresh').value = s.breakMinWork;
+  $('#setSyncOn').checked = s.syncEnabled;
+  $('#setSyncUrl').value = s.syncUrl;
+}
+
+$('#setSaveBtn').addEventListener('click', () => {
+  const s = Object.assign(getSettings(), {
+    stdIn: $('#setStdIn').value || '08:00',
+    stdOut: $('#setStdOut').value || '17:00',
+    breakEnabled: $('#setBreakOn').checked,
+    breakStart: $('#setBreakStart').value || '11:30',
+    breakEnd: $('#setBreakEnd').value || '13:30',
+    breakMinutes: Math.max(0, +$('#setBreakMin').value || 0),
+    breakMinWork: Math.max(0, +$('#setBreakThresh').value || 0)
+  });
+  saveJSON(K.settings, s);
+  renderAttList();
+  toast('Đã lưu cài đặt', 'ok');
+});
+
+$('#setSyncSaveBtn').addEventListener('click', () => {
+  const s = Object.assign(getSettings(), {
+    syncEnabled: $('#setSyncOn').checked,
+    syncUrl: $('#setSyncUrl').value.trim()
+  });
+  saveJSON(K.settings, s);
+  updateSyncInfo();
+  toast('Đã lưu cài đặt sync', 'ok');
+});
+
+/* ---------- #13: Backup JSON đầy đủ ---------- */
+$('#setExportBtn').addEventListener('click', () => {
+  const data = {
+    app: 'MobileManagerPro', version: 2, exportedAt: new Date().toISOString(),
+    employees: getEmployees(), categories: getCategories(),
+    attendance: getAttRecords(), transactions: getTransactions(),
+    settings: loadJSON(K.settings, {})
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `backup_quanly_${getTodayStr()}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('Đã xuất file backup', 'ok');
+});
+
+$('#setImportBtn').addEventListener('click', () => $('#setImportFile').click());
+$('#setImportFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const obj = JSON.parse(fr.result);
+      const checks = [
+        ['employees', K.employees], ['categories', K.categories],
+        ['attendance', K.attendance], ['transactions', K.transactions]
+      ];
+      let imported = 0;
+      for (const [key, storeKey] of checks){
+        if (Array.isArray(obj[key])){ saveJSON(storeKey, obj[key]); imported += obj[key].length; }
+      }
+      if (obj.settings && typeof obj.settings === 'object'){
+        saveJSON(K.settings, Object.assign({}, DEFAULT_SETTINGS, obj.settings));
+      }
+      refreshAll();
+      toast(`Đã nhập backup (${imported} bản ghi)`, 'ok');
+    } catch(err){
+      toast('File backup không hợp lệ', 'err');
+    }
+    e.target.value = '';
+  };
+  fr.readAsText(file);
+});
+
+$('#setWipeBtn').addEventListener('click', async () => {
+  const ok = await showConfirm('Xoá toàn bộ dữ liệu',
+    'Toàn bộ nhân viên, danh mục, chấm công, giao dịch và cài đặt sẽ bị XOÁ VĨNH VIỄN. Hãy xuất backup trước nếu cần. Bạn chắc chắn?',
+    'Xoá tất cả');
+  if (!ok) return;
+  Object.values(K).forEach(k => localStorage.removeItem(k));
+  refreshAll();
+  toast('Đã xoá toàn bộ dữ liệu');
+});
+
+/* ============================================================
+   KHỞI TẠO
+============================================================ */
+function refreshAll(){
+  refreshEmployeeOptions();
+  refreshCategoryOptions();
+  renderAttList();
+  renderTxList();
+  renderEmpList();
+  renderCatList();
+  loadSettingsForm();
+  updateSyncInfo();
+}
+
+function init(){
+  const today = getTodayStr();
+  $('#attDate').value = today;
+  $('#attListDate').value = today;
+  $('#txDate').value = today;
+  $('#txListDate').value = today;
+  $('#attIn').value = nowTimeStr();
+  $('#attOut').value = nowTimeStr();
+
+  const wd = getISOWeekData(new Date());
+  const wstr = `${wd.year}-W${pad(wd.week)}`;
+  $('#attWeekInput').value = wstr;
+  $('#expWeekInput').value = wstr;
+  const now = new Date();
+  const mstr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
+  $('#attMonthInput').value = mstr;
+  $('#expMonthInput').value = mstr;
+
+  refreshAll();
+  switchTab('att');
+}
+
+/* #12: KHÔNG đăng ký service-worker giả từ Blob URL nữa.
+   Chiến lược offline = localStorage + export/import backup định kỳ. */
+
+init();
 </script>
 </body>
 </html>
