@@ -121,7 +121,6 @@ table.report tfoot td{border-top:2px solid var(--line);border-bottom:none;font-w
 .stat .val{font-size:16px;font-weight:700;margin-top:3px}
 .stat .val.exp{color:var(--danger)} .stat .val.inc{color:var(--ok)}
 
-/* OCR & AI pipeline */
 .pipeline{display:flex;gap:6px;margin:12px 0;flex-wrap:wrap}
 .pstep{flex:1;min-width:110px;background:#f8fafc;border:1.5px solid var(--line);border-radius:10px;
   padding:8px;font-size:11px;color:#94a3b8;text-align:center;transition:.25s}
@@ -203,14 +202,17 @@ table.report tfoot td{border-top:2px solid var(--line);border-bottom:none;font-w
 .toast.err{background:var(--danger)} .toast.ok{background:var(--ok)}
 
 .settings-note{background:var(--pri-soft);border-radius:10px;padding:10px 12px;font-size:12.5px;color:#3730a3;line-height:1.55;margin-top:10px}
+.warn-note{background:var(--warn-soft);color:#92400e}
 .rate-tag{font-size:11px;font-weight:700;color:var(--pri);background:var(--pri-soft);border-radius:6px;padding:1px 6px;margin-left:6px}
+.storage-line{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.55}
+.storage-line b{color:#334155}
 </style>
 </head>
 <body>
 
 <header class="app-header">
   <h1>📱 Hệ Thống Quản Lý Di Động Pro</h1>
-  <p>🤖 AI OCR biên lai ngân hàng · ⏱️ Chấm công tính lương · 💰 Chi tiêu</p>
+  <p>🤖 AI OCR biên lai ngân hàng · ⏱️ Chấm công tính lương · 💰 Chi tiêu · 🗄️ IndexedDB</p>
 </header>
 
 <main>
@@ -265,7 +267,7 @@ table.report tfoot td{border-top:2px solid var(--line);border-bottom:none;font-w
     <h2>🤖 Quét hóa đơn AI <span class="badge ai">AI OCR</span></h2>
     <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px">
       📄 Chụp ảnh VietQR / màn hình chuyển khoản thành công / bill (Vietcombank, MB, Techcombank, BIDV, MoMo, ZaloPay...).
-      Hệ thống tự nhận diện <b>số tiền, người nhận, nội dung, ngày giờ</b> và <b>tự phân loại danh mục</b>, sau đó điền sẵn vào form bên dưới.
+      Hệ thống tự nhận diện <b>số tiền, người nhận, nội dung, ngày giờ</b>, <b>tự phân loại danh mục</b> rồi điền sẵn vào form bên dưới.
     </p>
 
     <div class="pipeline">
@@ -279,6 +281,7 @@ table.report tfoot td{border-top:2px solid var(--line);border-bottom:none;font-w
       <button type="button" class="btn ghost" id="ocrPickBtn">📁 Chọn ảnh</button>
       <button type="button" class="btn ghost" id="ocrCamBtn">📸 Chụp ảnh</button>
       <button type="button" class="btn primary" id="ocrRunBtn">🔍 Phân tích AI</button>
+      <button type="button" class="btn ghost small" id="ocrReleaseBtn" title="Giải phóng bộ nhớ OCR">♻️ Giải phóng OCR</button>
     </div>
     <input type="file" id="ocrFile" accept="image/*" hidden>
     <input type="file" id="ocrCamFile" accept="image/*" capture="environment" hidden>
@@ -290,7 +293,7 @@ table.report tfoot td{border-top:2px solid var(--line);border-bottom:none;font-w
     <div class="progress" id="ocrProgress"><span id="ocrProgressBar"></span></div>
     <div class="ocr-status" id="ocrProgressText"></div>
     <div id="ocrResult"></div>
-    <p class="hint">💡 Kết quả được điền tự động vào form. Bạn chỉ cần kiểm tra lại danh mục &amp; bấm Lưu. Chạm vào các chip danh mục để đổi nhanh 1-chạm.</p>
+    <p class="hint">💡 Kết quả được điền tự động vào form. Bạn chỉ cần kiểm tra lại danh mục &amp; bấm Lưu. Chạm chip danh mục để đổi nhanh 1-chạm.</p>
   </div>
 
   <div class="card">
@@ -405,11 +408,11 @@ table.report tfoot td{border-top:2px solid var(--line);border-bottom:none;font-w
     </div>
     <div class="field"><label for="setLlmUrl">Endpoint (chat/completions)</label><input type="text" id="setLlmUrl" placeholder="https://api.openai.com/v1/chat/completions"></div>
     <div class="grid2">
-      <div class="field"><label for="setLlmKey">API Key</label><input type="password" id="setLlmKey" placeholder="sk-..."></div>
+      <div class="field"><label for="setLlmKey">API Key</label><input type="password" id="setLlmKey" autocomplete="off" placeholder="sk-..."></div>
       <div class="field"><label for="setLlmModel">Model</label><input type="text" id="setLlmModel" placeholder="gpt-4o-mini"></div>
     </div>
     <button type="button" class="btn primary block" id="setLlmSaveBtn">💾 Lưu cài đặt AI</button>
-    <div class="settings-note">ℹ️ Không cấu hình thì hệ thống vẫn chạy tốt bằng <b>bộ luật NLP offline</b> (khớp từ khoá không dấu + học lịch sử phân loại của bạn).</div>
+    <div class="settings-note warn-note">🔐 <b>Cảnh báo bảo mật:</b> API key lưu ngay trên trình duyệt chỉ được <b>làm mờ (obfuscate)</b>, không phải mã hoá thật — bất kỳ mã độc/XSS nào trên máy cũng có thể đọc được. Với môi trường nghiêm túc, hãy gọi LLM qua <b>server proxy trung gian</b> giữ key ở phía server.</div>
   </div>
 
   <div class="card">
@@ -427,8 +430,8 @@ table.report tfoot td{border-top:2px solid var(--line);border-bottom:none;font-w
 
   <div class="card">
     <h2>💾 Sao lưu &amp; Khôi phục</h2>
-    <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;line-height:1.55">
-      Toàn bộ dữ liệu lưu trong bộ nhớ trình duyệt. Hãy xuất backup định kỳ để tránh mất dữ liệu.</p>
+    <div class="storage-line">🗄️ Hệ lưu trữ: <b id="storageBackend">đang kiểm tra…</b><br>
+      📦 Dữ liệu hiện tại: <b id="storageSize">0 B</b></div>
     <div class="btn-row">
       <button type="button" class="btn primary" id="setExportBtn">📥 Xuất backup (JSON)</button>
       <button type="button" class="btn ghost" id="setImportBtn">📤 Nhập backup</button>
@@ -466,7 +469,12 @@ table.report tfoot td{border-top:2px solid var(--line);border-bottom:none;font-w
 <script>
 'use strict';
 /* ============================================================
-   HỆ THỐNG QUẢN LÝ DI ĐỘNG PRO — bản AI OCR + tính lương
+   HỆ THỐNG QUẢN LÝ DI ĐỘNG PRO — bản hoàn thiện
+   ✔ Sửa lỗi cú pháp cuối file (wipe + refreshAll + init)
+   ✔ Chuyển storage sang IndexedDB (fallback localStorage + tự migrate)
+   ✔ Tesseract worker dùng chung + terminate (chống leak RAM)
+   ✔ Giải phóng canvas trong preprocessImage
+   ✔ API key obfuscate + cảnh báo bảo mật
 ============================================================ */
 const $ = s => document.querySelector(s);
 const pad = n => String(n).padStart(2,'0');
@@ -476,13 +484,110 @@ function esc(v){ return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
   .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function csvCell(v){ let s=String(v??''); if(/^[=+\-@\t]/.test(s)) s="'"+s;
   if(/[",\n;]/.test(s)) s='"'+s.replace(/"/g,'""')+'"'; return s; }
-function loadJSON(k,f){ try{const v=localStorage.getItem(k); return v===null?f:JSON.parse(v);}catch(e){return f;} }
-function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
 
 const K = { employees:'mp_employees_v3', categories:'mp_categories_v3',
   attendance:'mp_attendance_v3', transactions:'mp_transactions_v3',
   settings:'mp_settings_v3', syncQueue:'mp_sync_queue_v3', learned:'mp_learned_cat_v3' };
 
+/* ============================================================
+   TẦNG LƯU TRỮ: IndexedDB (idb-keyval style) + cache RAM
+   → hết lo QuotaExceededError 5-10MB của localStorage
+============================================================ */
+const IDB_NAME='mp_pro_db', IDB_STORE='kv';
+const mem={};
+let idbBroken=false, idbOpenPromise=null, storageErrShown=false;
+
+function openIDB(){
+  return new Promise((resolve,reject)=>{
+    if(!('indexedDB' in window)) return reject(new Error('unsupported'));
+    const req=indexedDB.open(IDB_NAME,1);
+    req.onupgradeneeded=()=>{ const db=req.result;
+      if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE); };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error('open failed'));
+  });
+}
+function openIDBOnce(){ if(!idbOpenPromise) idbOpenPromise=openIDB(); return idbOpenPromise; }
+async function idbSet(k,v){
+  const db=await openIDBOnce();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(IDB_STORE,'readwrite');
+    tx.objectStore(IDB_STORE).put(v,k);
+    tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error);
+  });
+}
+async function idbGet(k){
+  const db=await openIDBOnce();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(IDB_STORE,'readonly');
+    const req=tx.objectStore(IDB_STORE).get(k);
+    req.onsuccess=()=>res(req.result===undefined?null:req.result);
+    req.onerror=()=>rej(req.error);
+  });
+}
+async function idbDel(k){
+  const db=await openIDBOnce();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(IDB_STORE,'readwrite');
+    tx.objectStore(IDB_STORE).delete(k);
+    tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error);
+  });
+}
+
+function loadJSON(k,f){ return (k in mem)?mem[k]:f; }
+function fallbackWrite(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }
+  catch(e){ if(!storageErrShown){ storageErrShown=true;
+    toast('⚠️ Bộ nhớ đầy — hãy xuất backup ngay','err'); } } }
+function saveJSON(k,v){
+  mem[k]=v;
+  if(!idbBroken){ idbSet(k,v).catch(err=>{ console.warn('IDB write fail:',err); fallbackWrite(k,v); }); }
+  else fallbackWrite(k,v);
+}
+function removeStoreKey(k){
+  delete mem[k];
+  if(!idbBroken){ idbDel(k).catch(()=>{}); }
+  try{ localStorage.removeItem(k); }catch(e){}
+}
+async function initStorage(){
+  try{
+    await openIDBOnce();
+    for(const k of Object.values(K)){
+      let v=null; try{ v=await idbGet(k); }catch(e){ v=null; }
+      if(v!==null && v!==undefined){ mem[k]=v; }
+      else{
+        const raw=localStorage.getItem(k);
+        if(raw!==null){ try{ const parsed=JSON.parse(raw);
+          mem[k]=parsed; await idbSet(k,parsed); localStorage.removeItem(k); }catch(e){} }
+      }
+    }
+    idbBroken=false;
+  }catch(e){
+    idbBroken=true;
+    for(const k of Object.values(K)){ const raw=localStorage.getItem(k);
+      if(raw!==null){ try{ mem[k]=JSON.parse(raw); }catch(err){} } }
+  }
+}
+function updateStorageInfo(){
+  $('#storageBackend').textContent = idbBroken
+    ? 'localStorage (fallback, giới hạn 5–10MB)'
+    : 'IndexedDB (dung lượng lớn, bền vững)';
+  let bytes=0;
+  for(const k of Object.keys(mem)){ try{ bytes+=new Blob([JSON.stringify(mem[k])]).size; }catch(e){} }
+  $('#storageSize').textContent = bytes<1024 ? bytes+' B'
+    : bytes<1048576 ? (bytes/1024).toFixed(1)+' KB'
+    : (bytes/1048576).toFixed(2)+' MB';
+}
+
+/* ---------- Obfuscate API key (không lưu plain-text) ---------- */
+function strToB64(s){ const bytes=new TextEncoder().encode(s);
+  let bin=''; bytes.forEach(b=>bin+=String.fromCharCode(b)); return btoa(bin); }
+function b64ToStr(b){ const bin=atob(b);
+  const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0)); return new TextDecoder().decode(bytes); }
+function obf(s){ try{ return 'o1:'+strToB64(String(s).split('').reverse().join('')); }catch(e){ return String(s); } }
+function deobf(s){ s=String(s||''); if(!s.startsWith('o1:')) return s;
+  try{ return b64ToStr(s.slice(3)).split('').reverse().join(''); }catch(e){ return s.slice(3); } }
+
+/* ---------- Helpers ---------- */
 function getTodayStr(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 function nowTimeStr(){ const d=new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function fmtDateVN(iso){ if(!iso) return ''; const p=iso.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:iso; }
@@ -506,7 +611,8 @@ function rangeFromMonth(v){ const m=/^(\d{4})-(\d{2})$/.exec(v||''); if(!m) retu
   const last=new Date(+m[1],+m[2],0).getDate(); return {start:`${v}-01`, end:`${v}-${pad(last)}`}; }
 
 const DEFAULT_SETTINGS={ stdIn:'08:00',stdOut:'17:00',breakEnabled:true,breakStart:'11:30',breakEnd:'13:30',
-  breakMinutes:60,breakMinWork:4,syncUrl:'',syncEnabled:false,llmEnabled:false,llmUrl:'',llmKey:'',llmModel:'gpt-4o-mini' };
+  breakMinutes:60,breakMinWork:4,syncUrl:'',syncEnabled:false,
+  llmEnabled:false,llmUrl:'',llmKey:'',llmModel:'gpt-4o-mini' };
 function getSettings(){ return Object.assign({},DEFAULT_SETTINGS,loadJSON(K.settings,{})); }
 function getEmployees(){ return loadJSON(K.employees,[]); }
 function getCategories(){ return loadJSON(K.categories,[]); }
@@ -533,7 +639,7 @@ function computeWork(timeIn,timeOut,s){
 let toastTimer=null;
 function toast(msg,type){ const el=$('#toastEl'); el.textContent=msg;
   el.className='toast show'+(type==='err'?' err':type==='ok'?' ok':'');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2600); }
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2800); }
 
 /* ---------- Modal & confirm ---------- */
 let modalOnClose=null;
@@ -557,7 +663,7 @@ function showConfirm(title,msg,okLabel){ return new Promise(res=>{
    BỘ LUẬT PHÂN LOẠI DANH MỤC (NLP tiếng Việt không dấu)
 ============================================================ */
 const CATEGORY_RULES=[
-  {name:'Ăn uống',keys:['com','pho','bun','mi quang','an uong','nha hang','quan an','cafe','coffee','tra sua','tra chanh','do an','thuc an','kem','banh','sinh to','nuoc uong','lau','nuong','pizza','burger','grabfood','shopeefood','baemin','go food','gofood','beamin','an sang','an trua','an toi','quán ăn','buffet']},
+  {name:'Ăn uống',keys:['com','pho','bun','mi quang','an uong','nha hang','quan an','cafe','coffee','tra sua','tra chanh','do an','thuc an','kem','banh','sinh to','nuoc uong','lau','nuong','pizza','burger','grabfood','shopeefood','baemin','go food','gofood','buffet','an sang','an trua','an toi']},
   {name:'Đi chợ / Siêu thị',keys:['bach hoa xanh','bachhoaxanh','sieu thi','sieuthi','winmart','win mart','coopmart','coop mart','big c','bigc','lotte','aeon','mega market','mm mega','circle k','circlek','familymart','tap hoa','cua hang tien loi','di cho','tien cho','thuc pham','rau cu','thit ca']},
   {name:'Xăng xe',keys:['xang','dau do','nhien lieu','petrolimex','pvoil','gas','tram xang','xang dau','do xang','binh gas']},
   {name:'Điện nước / Internet',keys:['tien dien','dien luc','evn','hoa don dien','tien nuoc','nuoc sach','cap nuoc','hoa don nuoc','internet','wifi','truyen hinh','cap quang','fpt','viettel','vnpt','sctv','vtvcab','dien thoai','nap the','cuoc dien thoai']},
@@ -565,9 +671,9 @@ const CATEGORY_RULES=[
   {name:'Mua sắm',keys:['shopee','lazada','tiki','sendo','mua sam','thoi trang','quan ao','giay dep','my pham','dien may','nguyen kim','dien may xanh','phong vu','cellphones','the gioi di dong','thegioididong','fpt shop','fptshop','sach','do dung']},
   {name:'Nhà ở',keys:['tien nha','thue nha','phong tro','thue phong','tien phong','noi that','sua nha','phi quan ly','phi dich vu','chung cu']},
   {name:'Y tế / Sức khoẻ',keys:['benh vien','nha thuoc','kham benh','thuoc','y te','suc khoe','nha khoa','phong kham','bao hiem','xet nghiem','da lieu']},
-  {name:'Giáo dục',keys:['hoc phi','truong hoc','day hoc','gia su','sach vo','do dung hoc tap','lop hoc','trung tam','lop hoc','hoc them','trung tam tieng anh']},
-  {name:'Giải trí',keys:['giai tri','xem phim','rap phim','game','nap game','the cao','spotify','netflix','youtube premium','nhac','karaoke','bida','cafe phim','du lich','khach san','resort','ve tham quan']},
-  {name:'Chuyển tiền / Thanh toán',keys:['chuyen tien','gui tien','nop tien','rut tien','thanh toan','tra tien','hoi khoan','chuyen khoan','ct','tra gop','tra no','thanh toan hoa don']}
+  {name:'Giáo dục',keys:['hoc phi','truong hoc','day hoc','gia su','sach vo','do dung hoc tap','lop hoc','trung tam','hoc them','tieng anh']},
+  {name:'Giải trí',keys:['giai tri','xem phim','rap phim','game','nap game','the cao','spotify','netflix','youtube premium','nhac','karaoke','bida','du lich','khach san','resort','ve tham quan']},
+  {name:'Chuyển tiền / Thanh toán',keys:['chuyen tien','gui tien','nop tien','rut tien','thanh toan','tra tien','hoi khoan','chuyen khoan','tra gop','tra no','thanh toan hoa don']}
 ];
 
 function resolveCategoryByName(name){
@@ -580,7 +686,7 @@ function buildCandidates(recipient,memo){
   const cands=[]; const seen=new Set();
   const push=(name,catId,conf,reason)=>{ const key=name||catId; if(seen.has(key)) return; seen.add(key);
     cands.push({categoryName:name,categoryId:catId,confidence:conf,reason}); };
-  if(nr && learned[nr]){ push(null,learned[nr],95,'Trùng lịch sử phân loại trước đó của bạn'); }
+  if(nr && learned[nr]) push(null,learned[nr],95,'Trùng lịch sử phân loại trước đó của bạn');
   for(const r of CATEGORY_RULES){ for(const k of r.keys){ if(nm.includes(k)){ push(r.name,null,88,`Nội dung chứa "${k}"`); break; } } }
   for(const r of CATEGORY_RULES){ for(const k of r.keys){ if(nr.includes(k)){ push(r.name,null,75,`Người nhận khớp "${k}"`); break; } } }
   if(!cands.length) push('Chi tiêu khác',null,30,'Nội dung mơ hồ — hãy chọn thủ công');
@@ -592,13 +698,11 @@ function buildCandidates(recipient,memo){
    TRÍCH XUẤT DỮ LIỆU BIÊN LAI (AI Extraction + chuẩn hóa)
 ============================================================ */
 function parseAmountToken(str){
-  // "150k" -> 150000, "1.5tr" -> 1500000, "150,000" -> 150000
-  let s=String(str||'').toLowerCase().replace(/\s/g,'');
-  let mult=1;
+  let s=String(str||'').toLowerCase().replace(/\s/g,''); let mult=1;
   if(/k$/.test(s)){ mult=1000; s=s.slice(0,-1); }
   else if(/tr$/.test(s)){ mult=1000000; s=s.slice(0,-1); }
   else if(/trieu/.test(s)){ mult=1000000; s=s.replace(/trieu/g,''); }
-  else if(/nghin|ngàn/.test(s)){ mult=1000; s=s.replace(/nghin|ngàn/g,''); }
+  else if(/nghin|ngan/.test(s)){ mult=1000; s=s.replace(/nghin|ngan/g,''); }
   s=s.replace(/[.,]/g,'').replace(/[^\d]/g,'');
   if(!s) return null;
   const n=parseInt(s,10); return isNaN(n)?null:n*mult;
@@ -610,63 +714,54 @@ function extractReceiptFields(text){
   const NUM=/(\d{1,3}(?:[.,]\d{3})+|\d{4,})/g;
   const SHORT=/(\d+(?:[.,]\d+)?\s*(?:k|tr|trieu|nghin))/gi;
 
-  // Amount: ưu tiên dòng có keyword số tiền
   const AMT=['so tien','amount','gia tri','tong tien','tong so','gia tri giao dich','sotien','so tien chuyen','so tien nhan'];
   for(const line of lines){ const ln=norm(line);
     if(AMT.some(k=>ln.includes(k))){
       const nums=[...line.matchAll(NUM)].map(m=>parseAmountToken(m[1])).filter(n=>n&&n>0);
-      if(nums.length){ res.amount=Math.max(...nums); break; }
-    } }
+      if(nums.length){ res.amount=Math.max(...nums); break; } } }
   if(res.amount===null){ const all=[];
     for(const line of lines){ for(const m of line.matchAll(NUM)){ const n=parseAmountToken(m[1]); if(n&&n>=1000) all.push(n); } }
     if(all.length) res.amount=Math.max(...all); }
-  if(res.amount===null){ // dạng "150k"
-    const all=[...String(text).matchAll(SHORT)].map(m=>parseAmountToken(m[1])).filter(n=>n&&n>0);
+  if(res.amount===null){ const all=[...String(text).matchAll(SHORT)].map(m=>parseAmountToken(m[1])).filter(n=>n&&n>0);
     if(all.length) res.amount=Math.max(...all); }
 
-  // Date dd/mm/yyyy
   const dm=String(text).match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/);
   if(dm){ let d=+dm[1],mo=+dm[2],y=+dm[3]; if(y<100)y+=2000;
     if(d>12&&mo<=12){const t=d;d=mo;mo=t;}
     if(mo>=1&&mo<=12&&d>=1&&d<=31&&y>=2000&&y<=2100) res.date=`${y}-${pad(mo)}-${pad(d)}`; }
-  // Time hh:mm
   const tm=String(text).match(/(\d{1,2}):(\d{2})/);
   if(tm&&+tm[1]<24) res.time=`${pad(+tm[1])}:${tm[2]}`;
 
-  // Memo / nội dung chuyển khoản
   const MEMO=['noi dung','noidung','ghi chu','mo ta','description','memo','noi dung chuyen khoan'];
   for(const line of lines){ const ln=norm(line);
     const hit=MEMO.find(k=>ln.includes(k));
-    if(hit){ let rest=line.slice(line.toLowerCase().length); // fallback
-      const idx=ln.indexOf(hit); rest=line.slice(idx+hit.length).replace(/^[\s:.\-–()]+/,'');
+    if(hit){ const idx=ln.indexOf(hit);
+      let rest=line.slice(idx+hit.length).replace(/^[\s:.\-–()]+/,'');
       if(rest.length>=2){ res.memo=rest.slice(0,80); break; } } }
-  // Nếu không có memo, dùng dòng chứa từ khoá chuyển khoản
   if(!res.memo){ for(const line of lines){ const ln=norm(line);
     if(ln.includes('chuyen khoan')||ln.includes('thanh toan')){ res.memo=line.slice(0,80); break; } } }
 
-  // Recipient / người nhận
   const PART=['nguoi nhan','nguoi chuyen','nguoi huong','tai khoan','account','den tai khoan','chuyen den'];
-  for(const line of lines){ const ln=norm(line);
-    let found=null;
+  for(const line of lines){ const ln=norm(line); let found=null;
     for(const k of PART){ const idx=ln.indexOf(k);
       if(idx>=0){ let rest=line.slice(idx+k.length).replace(/^[\s:.\-–()]+/,'')
         .replace(/\d{4,}[\d\s.]*$/,'').trim();
         if(rest.length>=3&&rest.length<=60){ found=rest; break; } } }
     if(found){ res.recipient=found; break; } }
-  if(!res.recipient){ // fallback dòng IN HOA là tên riêng
+  if(!res.recipient){
     const SKIP=/NGAN HANG|BANK|VIETCOMBANK|TECHCOMBANK|MB BANK|BIDV|VPBANK|ACB|VIETINBANK|GIAO DICH|THANH CONG|SUCCESS|BIEN LA|HOA DON/i;
     for(const line of lines){ if(/^[\p{Lu}\s]{5,50}$/u.test(line)&&!SKIP.test(line)&&!norm(line).includes('ngan hang')){ res.recipient=line.trim(); break; } } }
   return res;
 }
 
-/* Tuỳ chọn: gọi LLM Vision (OpenAI-compatible) */
+/* Tuỳ chọn: LLM Vision (key được deobfuscate khi dùng) */
 async function llmExtract(file){
-  const s=getSettings();
-  if(!s.llmEnabled||!s.llmUrl||!s.llmKey) return null;
+  const s=getSettings(); const key=deobf(s.llmKey);
+  if(!s.llmEnabled||!s.llmUrl||!key) return null;
   try{
     const b64=await new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(file); });
     const resp=await fetch(s.llmUrl,{method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.llmKey},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
       body:JSON.stringify({model:s.llmModel||'gpt-4o-mini',
         messages:[{role:'user',content:[
           {type:'text',text:'Trích xuất từ ảnh biên lai ngân hàng VN. Trả về JSON duy nhất: {"amount":<số nguyên VND>,"date":"YYYY-MM-DD","recipient":"...","memo":"..."}. Trường nào không có thì null.'},
@@ -680,24 +775,64 @@ async function llmExtract(file){
   }catch(e){ return null; }
 }
 
-/* Tiền xử lý ảnh: grayscale + tăng tương phản để OCR tốt hơn */
+/* Tiền xử lý ảnh — CÓ giải phóng canvas sau khi dùng */
 function preprocessImage(file){ return new Promise(res=>{
   const img=new Image(); const url=URL.createObjectURL(file);
-  img.onload=()=>{ const c=document.createElement('canvas');
+  img.onload=()=>{
+    const c=document.createElement('canvas');
     const sc=Math.min(1,1600/Math.max(img.width,img.height));
-    c.width=img.width*sc; c.height=img.height*sc;
+    c.width=Math.max(1,Math.round(img.width*sc));
+    c.height=Math.max(1,Math.round(img.height*sc));
     const ctx=c.getContext('2d'); ctx.drawImage(img,0,0,c.width,c.height);
     try{ const id=ctx.getImageData(0,0,c.width,c.height); const d=id.data;
       for(let i=0;i<d.length;i+=4){ let g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
         g=((g-128)*1.35)+128; d[i]=d[i+1]=d[i+2]=Math.max(0,Math.min(255,g)); }
       ctx.putImageData(id,0,0);
     }catch(e){}
-    URL.revokeObjectURL(url); res(c.toDataURL('image/png')); };
+    const out=c.toDataURL('image/png');
+    c.width=0; c.height=0;                 // ✔ giải phóng bộ nhớ canvas
+    URL.revokeObjectURL(url);
+    res(out);
+  };
   img.onerror=()=>{ URL.revokeObjectURL(url); res(file); };
   img.src=url; }); }
 
 /* ============================================================
-   ĐỒNG BỘ
+   TESSERACT: worker DÙNG CHUNG + terminate → không leak RAM
+============================================================ */
+let ocrWorker=null, ocrWorkerPromise=null;
+function setOcrProgress(p,txt){ $('#ocrProgress').classList.toggle('show',p>0);
+  $('#ocrProgressBar').style.width=p+'%'; $('#ocrProgressText').textContent=txt||''; }
+function getOcrWorker(){
+  if(ocrWorker) return Promise.resolve(ocrWorker);
+  if(!ocrWorkerPromise){
+    ocrWorkerPromise=Tesseract.createWorker('vie+eng',1,{
+      logger:m=>{ if(m.status==='recognizing text')
+        setOcrProgress(Math.round((m.progress||0)*100),'Đang nhận diện chữ...'); }
+    }).then(w=>{ ocrWorker=w; return w; })
+      .catch(e=>{ ocrWorkerPromise=null; throw e; });
+  }
+  return ocrWorkerPromise;
+}
+function releaseOcrWorker(){
+  if(ocrWorker){ try{ ocrWorker.terminate(); }catch(e){} ocrWorker=null; }
+  ocrWorkerPromise=null;
+  setOcrProgress(0,'');
+  toast('♻️ Đã giải phóng bộ nhớ OCR','ok');
+}
+async function runTesseractOCR(imgData){
+  let worker;
+  try{ worker=await getOcrWorker(); }
+  catch(e){ ocrWorker=null; ocrWorkerPromise=null; worker=await getOcrWorker(); }
+  try{ const {data}=await worker.recognize(imgData); return data; }
+  catch(e){ try{ await worker.terminate(); }catch(_){}
+    ocrWorker=null; ocrWorkerPromise=null; throw e; }
+}
+window.addEventListener('pagehide',()=>{ if(ocrWorker){ try{ocrWorker.terminate();}catch(e){} ocrWorker=null; } ocrWorkerPromise=null; });
+$('#ocrReleaseBtn').addEventListener('click',releaseOcrWorker);
+
+/* ============================================================
+   ĐỒNG BỘ GOOGLE APPS SCRIPT
 ============================================================ */
 let syncBusy=false;
 function updateSyncInfo(){ const q=loadJSON(K.syncQueue,[]); const s=getSettings();
@@ -729,7 +864,7 @@ function switchTab(name){
   if(name==='exp'){ refreshCategoryOptions(); renderTxList(); }
   if(name==='emp'){ renderEmpList(); }
   if(name==='cat'){ renderCatList(); }
-  if(name==='set'){ loadSettingsForm(); updateSyncInfo(); }
+  if(name==='set'){ loadSettingsForm(); updateSyncInfo(); updateStorageInfo(); }
   window.scrollTo({top:0});
 }
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
@@ -786,7 +921,7 @@ $('#attSaveBtn').addEventListener('click',()=>{
   if(!tin||!tout) return toast('Vui lòng nhập giờ vào / giờ ra','err');
   const emp=empById(empId); if(!emp) return toast('Nhân viên không tồn tại','err');
   const s=getSettings(); const w=computeWork(tin,tout,s);
-  const rate=Number(emp.rate)||0;                     /* snapshot đơn giá */
+  const rate=Number(emp.rate)||0;
   const list=getAttRecords();
   if(editingAttId){ const i=list.findIndex(r=>r.id===editingAttId); if(i<0) return toast('Không thấy bản ghi','err');
     list[i]=Object.assign({},list[i],{employeeId:emp.id,employeeCode:emp.code,employeeName:emp.name,
@@ -825,7 +960,7 @@ $('#attRunBtn').addEventListener('click',()=>{
       sumMap.set(r.employeeId,g); }
     const w=computeWork(r.timeIn,r.timeOut,s);
     g.days++; g.min+=r.netMin||0; g.late+=w.lateMin; g.early+=w.earlyMin;
-    g.money+=(Number(r.rate)||0); }                     /* thành tiền = Σ đơn giá theo ngày */
+    g.money+=(Number(r.rate)||0); }
   lastAttReport={range,recs,summary:[...sumMap.values()]};
   const out=$('#attReportOut');
   if(!recs.length){ out.innerHTML='<div class="empty">Không có dữ liệu trong khoảng này</div>'; return; }
@@ -874,7 +1009,7 @@ $('#attCsvBtn').addEventListener('click',()=>{
    CHI TIÊU — OCR/AI
 ============================================================ */
 let ocrFileCurrent=null, ocrUrlCurrent=null, lastExtraction=null;
-function setPipeline(n){ // n: bước đang chạy (0..3); bước < n = done
+function setPipeline(n){
   for(let i=0;i<4;i++){ const el=$('#ps'+(i+1));
     el.classList.remove('run','done');
     if(i<n) el.classList.add('done'); else if(i===n) el.classList.add('run'); } }
@@ -890,34 +1025,26 @@ $('#ocrCamBtn').addEventListener('click',()=>$('#ocrCamFile').click());
 $('#ocrFile').addEventListener('change',e=>{ if(e.target.files[0]) setOcrPreview(e.target.files[0]); });
 $('#ocrCamFile').addEventListener('change',e=>{ if(e.target.files[0]) setOcrPreview(e.target.files[0]); });
 $('#ocrClearBtn').addEventListener('click',()=>clearOcrPreview());
-function setOcrProgress(p,txt){ $('#ocrProgress').classList.toggle('show',p>0);
-  $('#ocrProgressBar').style.width=p+'%'; $('#ocrProgressText').textContent=txt||''; }
 
 $('#ocrRunBtn').addEventListener('click',async()=>{
   if(!ocrFileCurrent) return toast('Hãy chọn hoặc chụp ảnh trước','err');
   const btn=$('#ocrRunBtn'); btn.disabled=true;
   setOcrProgress(0,'');
   try{
-    /* BƯỚC 1: Quét & OCR */
     setPipeline(0); setOcrProgress(5,'Đang tiền xử lý ảnh...');
     let ex=null;
     const llm=await llmExtract(ocrFileCurrent);
-    if(llm && (llm.amount||llm.recipient||llm.memo)){ ex=llm; setOcrProgress(60,'AI đã trích xuất.'); }
+    if(llm && (llm.amount||llm.recipient||llm.memo)){ ex=llm; setOcrProgress(60,'AI Vision đã trích xuất.'); }
     else{
       if(typeof Tesseract==='undefined') throw new Error('Không nạp được thư viện OCR (kiểm tra mạng)');
       const pre=await preprocessImage(ocrFileCurrent);
-      const ret=await Tesseract.recognize(pre,'vie+eng',{logger:m=>{
-        if(m.status==='recognizing text') setOcrProgress(Math.round((m.progress||0)*100),'Đang nhận diện chữ...');
-        else if(m.status) setOcrProgress(5,'Đang chuẩn bị ('+m.status+')...'); }});
-      /* BƯỚC 2: AI Chuẩn hóa */
+      const data=await runTesseractOCR(pre);
       setPipeline(1); setOcrProgress(100,'Chuẩn hóa dữ liệu...');
-      ex=extractReceiptFields(ret.data&&ret.data.text?ret.data.text:'');
+      ex=extractReceiptFields(data&&data.text?data.text:'');
     }
-    /* BƯỚC 3: Phân loại */
     setPipeline(2);
     const cands=buildCandidates(ex.recipient,ex.memo);
     lastExtraction=Object.assign({},ex,{candidates:cands});
-    /* BƯỚC 4: Xác nhận (điền sẵn vào form) */
     setPipeline(3);
     renderOcrResult();
     applyExtractionToForm();
@@ -933,12 +1060,10 @@ function applyExtractionToForm(){
   if(ex.date) $('#txDate').value=ex.date;
   if(ex.recipient) $('#txParty').value=ex.recipient;
   if(ex.memo) $('#txNote').value=ex.memo;
-  // chọn danh mục khớp đầu tiên (nếu đã tồn tại)
   const top=ex.candidates&&ex.candidates[0];
   let selId=top?(top.categoryId||null):null;
   if(!selId&&top&&top.categoryName){ const m=resolveCategoryByName(top.categoryName); if(m) selId=m.id; }
   if(selId){ $('#txCat').value=selId; }
-  // highlight nhẹ các ô vừa điền
   ['txAmount','txDate','txParty','txNote','txCat'].forEach(id=>{
     const el=$('#'+id); el.classList.remove('applied-flash'); void el.offsetWidth; el.classList.add('applied-flash'); });
   toast('🤖 Đã điền dữ liệu AI vào form — kiểm tra & Lưu','ok');
@@ -954,7 +1079,7 @@ function renderOcrResult(){
       <div class="row"><b>📅 Ngày:</b><span class="val">${ex.date?esc(fmtDateVN(ex.date))+(ex.time?' '+esc(ex.time):''):'<i>—</i>'}</span></div>
       <div class="row"><b>👤 Người nhận:</b><span class="val">${ex.recipient?esc(ex.recipient):'<i>—</i>'}</span></div>
       <div class="row"><b>📝 Nội dung:</b><span class="val">${ex.memo?esc(ex.memo):'<i>—</i>'}</span></div>
-      <div class="row"><b>🏷️ Danh mục AI:</b><span class="val" style="color:${confColor}">${esc(top.categoryName||(catById(top.categoryId)||{}).name||'—')} (${top.confidence}%)</span></div>
+      <div class="row"><b>🏷️ Danh mục AI:</b><span class="val" style="color:${confColor}">${esc(top.categoryName||((catById(top.categoryId)||{}).name)||'—')} (${top.confidence}%)</span></div>
       <div style="font-size:11.5px;color:var(--muted);margin-top:2px">↳ ${esc(top.reason)}</div>
       <div class="conf-bar"><span style="width:${top.confidence}%"></span></div>
       <div class="chips">${ex.candidates.map((c,i)=>{
@@ -972,8 +1097,10 @@ function renderOcrResult(){
         if(m){ id=m.id; } else {
           const list=getCategories(); const nc={id:uid(),name:c.categoryName,type:'expense'};
           list.push(nc); saveJSON(K.categories,list); refreshCategoryOptions(); renderCatList(); id=nc.id; } }
-      if(id){ $('#txCat').value=id; const el=$('#txCat'); el.classList.remove('applied-flash'); void el.offsetWidth; el.classList.add('applied-flash');
-        toast('Đã chọn danh mục: '+ch.textContent.trim(),'ok'); }
+      if(id){ $('#txCat').value=id; const el=$('#txCat');
+        el.classList.remove('applied-flash'); void el.offsetWidth; el.classList.add('applied-flash');
+        toast('Đã chọn danh mục: '+nameOf(c,id),'ok'); }
+      function nameOf(cand,cid){ return cand.categoryName||((catById(cid)||{}).name)||''; }
     });
   });
 }
@@ -1033,7 +1160,6 @@ $('#txSaveBtn').addEventListener('click',()=>{
     saveJSON(K.transactions,list); toast('Đã cập nhật giao dịch','ok'); }
   else { list.push({id:uid(),type,date,categoryId:cat.id,categoryName:cat.name,amount,party,note,createdAt:Date.now()});
     saveJSON(K.transactions,list); toast('Đã lưu giao dịch','ok'); }
-  /* HỌC: ghi nhớ người nhận -> danh mục để lần sau gợi ý chính xác */
   if(party){ const lm=getLearned(); lm[normalizeVN(party)]=cat.id; saveJSON(K.learned,lm); }
   resetTxForm(); renderTxList(); });
 $('#txListReload').addEventListener('click',()=>{renderTxList();toast('Đã tải lại');});
@@ -1053,7 +1179,7 @@ $('#expRunBtn').addEventListener('click',()=>{
   const txs=getTransactions().filter(t=>t.date>=range.start&&t.date<=range.end).sort((a,b)=>a.date<b.date?-1:1);
   const byCat=new Map(); let inc=0,exp=0;
   for(const t of txs){ const key=t.type+'|'+(t.categoryId||t.categoryName||'');
-    let g=byCat.get(key); if(!g){ g={type:t.type,name:t.categoryName||(catById(t.categoryId)||{}).name||'—',total:0,count:0}; byCat.set(key,g); }
+    let g=byCat.get(key); if(!g){ g={type:t.type,name:t.categoryName||((catById(t.categoryId)||{}).name)||'—',total:0,count:0}; byCat.set(key,g); }
     g.total+=+t.amount||0; g.count++; if(t.type==='expense') exp+=+t.amount||0; else inc+=+t.amount||0; }
   lastExpReport={range,txs,byCat:[...byCat.values()],inc,exp};
   const out=$('#expReportOut');
@@ -1177,7 +1303,7 @@ function loadSettingsForm(){ const s=getSettings();
   $('#setBreakEnd').value=s.breakEnd; $('#setBreakMin').value=s.breakMinutes; $('#setBreakThresh').value=s.breakMinWork;
   $('#setSyncOn').checked=s.syncEnabled; $('#setSyncUrl').value=s.syncUrl;
   $('#setLlmOn').checked=s.llmEnabled; $('#setLlmUrl').value=s.llmUrl;
-  $('#setLlmKey').value=s.llmKey; $('#setLlmModel').value=s.llmModel; }
+  $('#setLlmKey').value=deobf(s.llmKey); $('#setLlmModel').value=s.llmModel; }
 $('#setSaveBtn').addEventListener('click',()=>{
   const s=Object.assign(getSettings(),{stdIn:$('#setStdIn').value||'08:00',stdOut:$('#setStdOut').value||'17:00',
     breakEnabled:$('#setBreakOn').checked,breakStart:$('#setBreakStart').value||'11:30',
@@ -1186,8 +1312,8 @@ $('#setSaveBtn').addEventListener('click',()=>{
   saveJSON(K.settings,s); renderAttList(); toast('Đã lưu cài đặt','ok'); });
 $('#setLlmSaveBtn').addEventListener('click',()=>{
   const s=Object.assign(getSettings(),{llmEnabled:$('#setLlmOn').checked,llmUrl:$('#setLlmUrl').value.trim(),
-    llmKey:$('#setLlmKey').value.trim(),llmModel:$('#setLlmModel').value.trim()||'gpt-4o-mini'});
-  saveJSON(K.settings,s); toast('Đã lưu cài đặt AI','ok'); });
+    llmKey:obf($('#setLlmKey').value.trim()),llmModel:$('#setLlmModel').value.trim()||'gpt-4o-mini'});
+  saveJSON(K.settings,s); toast('Đã lưu cài đặt AI (key đã làm mờ)','ok'); });
 $('#setSyncSaveBtn').addEventListener('click',()=>{
   const s=Object.assign(getSettings(),{syncEnabled:$('#setSyncOn').checked,syncUrl:$('#setSyncUrl').value.trim()});
   saveJSON(K.settings,s); updateSyncInfo(); toast('Đã lưu cài đặt sync','ok'); });
@@ -1208,30 +1334,69 @@ $('#setImportFile').addEventListener('change',e=>{ const file=e.target.files[0];
     if(obj.learned&&typeof obj.learned==='object') saveJSON(K.learned,obj.learned);
     refreshAll(); toast(`Đã nhập backup (${n} bản ghi)`,'ok');
   }catch(err){ toast('File backup không hợp lệ','err'); } e.target.value=''; }; fr.readAsText(file); });
-$('#setWipeBtn').addEventListener('click',async()=>{
-  const ok=await showConfirm('Xoá toàn bộ dữ liệu',
-    'Toàn bộ nhân viên, danh mục, chấm công, giao dịch, lịch sử học AI và cài đặt sẽ bị XOÁ VĨNH VIỄN. Hãy xuất backup trước nếu cần.','Xoá tất cả');
-  if(!ok) return; Object.values(K).forEach(k=>localStorage.removeItem(k)); refreshAll(); toast('Đã xoá toàn bộ dữ liệu'); });
+
+/* ✔ Đoạn cuối file đã HOÀN CHỈNH — không còn SyntaxError */
+$('#setWipeBtn').addEventListener('click', async () => {
+  const ok = await showConfirm(
+    'Xoá toàn bộ dữ liệu',
+    'Toàn bộ nhân viên, danh mục, chấm công, giao dịch, lịch sử học AI và cài đặt sẽ bị XOÁ VĨNH VIỄN. Hãy xuất backup trước nếu cần.',
+    'Xoá tất cả'
+  );
+  if (!ok) return;
+  Object.values(K).forEach(k => removeStoreKey(k));
+  refreshAll();
+  toast('Đã xoá toàn bộ dữ liệu', 'ok');
+});
 
 /* ============================================================
    KHỞI TẠO
 ============================================================ */
-function refreshAll(){ refreshEmployeeOptions(); refreshCategoryOptions();
-  renderAttList(); renderTxList(); renderEmpList(); renderCatList();
-  loadSettingsForm(); updateSyncInfo(); }
-function init(){ const today=getTodayStr();
-  $('#attDate').value=today; $('#attListDate').value=today;
-  $('#txDate').value=today; $('#txListDate').value=today;
-  $('#attIn').value=nowTimeStr(); $('#attOut').value=nowTimeStr();
+function refreshAll(){
+  /* Seed danh mục mặc định lần đầu */
+  if (!getCategories().length){
+    const defaultCats = [
+      { id: uid(), name: 'Ăn uống',   type: 'expense' },
+      { id: uid(), name: 'Xăng xe',   type: 'expense' },
+      { id: uid(), name: 'Mua sắm',   type: 'expense' },
+      { id: uid(), name: 'Lương thưởng', type: 'income' }
+    ];
+    saveJSON(K.categories, defaultCats);
+  }
+  refreshEmployeeOptions();
+  refreshCategoryOptions();
+  renderAttList();
+  renderTxList();
+  renderEmpList();
+  renderCatList();
+  loadSettingsForm();
+  updateSyncInfo();
+  updateStorageInfo();
+}
+
+async function bootstrap(){
+  await initStorage();
+  $('#storageBackend').textContent = idbBroken
+    ? 'localStorage (fallback, giới hạn 5–10MB)'
+    : 'IndexedDB (dung lượng lớn, bền vững)';
+  $('#attDate').value = getTodayStr();
+  $('#attListDate').value = getTodayStr();
+  $('#txDate').value = getTodayStr();
+  $('#txListDate').value = getTodayStr();
+  $('#attIn').value = nowTimeStr();
+  $('#attOut').value = nowTimeStr();
   const wd=getISOWeekData(new Date()); const wstr=`${wd.year}-W${pad(wd.week)}`;
   $('#attWeekInput').value=wstr; $('#expWeekInput').value=wstr;
   const now=new Date(); const mstr=`${now.getFullYear()}-${pad(now.getMonth()+1)}`;
   $('#attMonthInput').value=mstr; $('#expMonthInput').value=mstr;
-  // seed vài danh mục mặc định lần đầu
-  if(!getCategories().length){
-    saveJSON(K.categories,CATEGORY_RULES.map(r=>({id:uid(),name:r.name,type:'expense'}))); }
-  refreshAll(); switchTab('att'); }
-init();
+  refreshAll();
+  switchTab('att');
+}
+
+if (document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', bootstrap);
+} else {
+  bootstrap();
+}
 </script>
 </body>
 </html>
