@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-title" content="Quản Lý Pro">
     <title>Hệ Thống Quản Lý Di Động Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Local fallback script indicator & Tesseract JS with offline fail-safe -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
@@ -41,7 +40,7 @@
         .app-title span { background: linear-gradient(135deg, var(--primary), #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .version-tag { font-size: 11px; background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 20px; font-weight: 600; }
 
-        /* --- Main App Switcher (Chấm công vs Chi tiêu) --- */
+        /* --- Main App Switcher --- */
         .app-switcher { display: flex; background: #0f172a; border-radius: 18px; padding: 4px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(15,23,42,0.15); }
         .app-switcher-btn { flex: 1; padding: 11px 0; border: none; border-radius: 14px; background: transparent; font-weight: 700; font-size: 14px; color: #94a3b8; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .app-switcher-btn.active { background: linear-gradient(135deg, var(--primary), #6366f1); color: #ffffff; box-shadow: 0 4px 12px rgba(79,70,229,0.3); }
@@ -74,7 +73,7 @@
 
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-        /* --- Segment Switcher (Chế độ báo cáo) --- */
+        /* --- Segment Switcher --- */
         .segment-control { display: flex; background: #f1f5f9; border-radius: var(--radius-md); padding: 3px; margin-bottom: 14px; border: 1px solid var(--border); }
         .segment-btn { flex: 1; padding: 8px 0; border: none; border-radius: 8px; background: transparent; font-size: 13px; font-weight: 600; color: var(--text-sub); cursor: pointer; transition: all 0.2s; }
         .segment-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
@@ -128,7 +127,8 @@
         .item-amount.expense { color: #b91c1c; }
 
         /* --- Summary Cards --- */
-        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+        .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
+        .summary-grid.grid-4 { grid-template-columns: repeat(2, 1fr); }
         .summary-item { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 8px; text-align: center; }
         .summary-item .number { font-size: 16px; font-weight: 700; }
         .summary-item .number.income { color: #15803d; }
@@ -140,79 +140,23 @@
         .info-text { font-size: 12px; color: var(--text-sub); margin-top: 6px; text-align: center; font-style: italic; }
 
         /* --- OCR / Scan styles --- */
-        .scan-area {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            text-align: center;
-            background: #fafafa;
-            margin-bottom: 14px;
-            transition: all 0.2s;
-        }
+        .scan-area { border: 2px dashed var(--border); border-radius: var(--radius-md); padding: 16px; text-align: center; background: #fafafa; margin-bottom: 14px; transition: all 0.2s; }
         .scan-area.has-image { border-style: solid; border-color: var(--primary); background: #f8fafc; }
-        .scan-preview {
-            max-width: 100%;
-            max-height: 180px;
-            border-radius: 10px;
-            margin: 10px auto;
-            display: none;
-            object-fit: contain;
-        }
+        .scan-preview { max-width: 100%; max-height: 180px; border-radius: 10px; margin: 10px auto; display: none; object-fit: contain; }
         .scan-preview.show { display: block; }
         .scan-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
         .ocr-status { font-size: 13px; color: var(--text-sub); margin-top: 8px; min-height: 20px; }
         .ocr-status.loading { color: var(--primary); }
         .ocr-status.success { color: var(--success); }
         .ocr-status.error { color: var(--danger); }
-        .ocr-raw {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f1f5f9;
-            border-radius: 8px;
-            font-size: 11px;
-            color: #475569;
-            max-height: 120px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            display: none;
-            text-align: left;
-        }
+        .ocr-raw { margin-top: 10px; padding: 10px; background: #f1f5f9; border-radius: 8px; font-size: 11px; color: #475569; max-height: 120px; overflow-y: auto; white-space: pre-wrap; display: none; text-align: left; }
         .ocr-raw.show { display: block; }
-        .progress-bar {
-            height: 4px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            margin-top: 8px;
-            overflow: hidden;
-            display: none;
-        }
+        .progress-bar { height: 4px; background: #e2e8f0; border-radius: 4px; margin-top: 8px; overflow: hidden; display: none; }
         .progress-bar.show { display: block; }
-        .progress-bar .bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), #818cf8);
-            width: 0%;
-            transition: width 0.3s;
-        }
+        .progress-bar .bar { height: 100%; background: linear-gradient(90deg, var(--primary), #818cf8); width: 0%; transition: width 0.3s; }
 
         /* --- Floating Action Button --- */
-        .float-action {
-            position: fixed;
-            bottom: calc(20px + var(--safe-area-bottom));
-            right: 20px;
-            background: linear-gradient(135deg, var(--primary), #6366f1);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 14px 22px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.35);
-            z-index: 40;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
+        .float-action { position: fixed; bottom: calc(20px + var(--safe-area-bottom)); right: 20px; background: linear-gradient(135deg, var(--primary), #6366f1); color: white; border: none; border-radius: 50px; padding: 14px 22px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.35); z-index: 40; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .float-action:active { transform: scale(0.95); }
 
         /* --- Modal --- */
@@ -224,25 +168,7 @@
         .modal-close { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         /* --- Toast Notification --- */
-        .toast {
-            position: fixed;
-            bottom: calc(85px + var(--safe-area-bottom));
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: #0f172a;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
-            z-index: 60;
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
-            text-align: center;
-            max-width: 90%;
-        }
+        .toast { position: fixed; bottom: calc(85px + var(--safe-area-bottom)); left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: white; padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 500; z-index: 60; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); text-align: center; max-width: 90%; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
@@ -338,10 +264,18 @@
                     <input type="month" class="form-control" id="att-report-month">
                 </div>
 
+                <!-- Bổ sung tính năng chọn nhân viên để lọc tổng hợp công -->
+                <div class="form-group">
+                    <label>Lọc theo Nhân viên</label>
+                    <select class="form-control" id="att-report-filter-employee">
+                        <option value="ALL">-- Tất cả nhân viên --</option>
+                    </select>
+                </div>
+
                 <button class="btn btn-primary btn-block" id="att-btn-report">Tổng hợp dữ liệu</button>
                 <div class="info-text" id="att-report-range-info"></div>
                 
-                <div id="att-report-summary" class="summary-grid"></div>
+                <div id="att-report-summary" class="summary-grid grid-4"></div>
                 <div id="att-report-detail"></div>
                 
                 <button class="btn btn-success btn-block" id="att-btn-export-csv" style="margin-top: 14px;">📥 Xuất File CSV (Excel)</button>
@@ -363,7 +297,6 @@
         </div>
     </div>
 
-
     <!-- ==================== MODULE 2: CHI TIÊU ==================== -->
     <div id="module-expense" class="app-section">
         <div class="tab-bar">
@@ -374,7 +307,6 @@
 
         <!-- Tab 2.1: Nhập Chi Tiêu & OCR Scan -->
         <div id="exp-tab-nhap" class="tab-content active">
-            <!-- Quét hóa đơn -->
             <div class="card">
                 <div class="card-title">📷 Quét hóa đơn / Biên lai ngân hàng</div>
                 <div class="scan-area" id="exp-scan-area">
@@ -491,7 +423,7 @@
 
 </div>
 
-<!-- Modal Thêm/Sửa Nhân viên (Chấm công) -->
+<!-- Modal Thêm/Sửa Nhân viên (Bổ sung Lương/Đơn giá) -->
 <div class="modal-overlay" id="att-employee-modal">
     <div class="modal">
         <div class="modal-header">
@@ -509,6 +441,10 @@
         <div class="form-group">
             <label>Bộ phận / Phòng ban</label>
             <input type="text" class="form-control" id="att-modal-emp-dept" placeholder="VD: Kế toán, Kỹ thuật...">
+        </div>
+        <div class="form-group">
+            <label>Đơn giá nhân công (VNĐ/Ngày công)</label>
+            <input type="number" class="form-control" id="att-modal-emp-rate" placeholder="VD: 300000" min="0" step="10000">
         </div>
         <button class="btn btn-primary btn-block" id="att-modal-save-employee">Lưu thông tin</button>
         <input type="hidden" id="att-modal-edit-index">
@@ -539,15 +475,11 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<button class="float-action" id="float-add">⚡ Thêm nhanh</button>
+<button class="float-action" id="float-add">⚡ Chấm công nhanh</button>
 
 <script>
-    // =========================================================================
-    // CẤU HÌNH & SERVICE WORKER CHẠY OFFLINE TÊN IOS
-    // =========================================================================
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7ygqXmMG8mr3dHlNLsPt5BncqIM6s_B62KFoO6-f_OYGnmlj5gIy68HBm8nwHR2Py/exec";
 
-    // Đăng ký Service Worker động dạng Data URI để trình duyệt iOS cache offline
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swCode = `
@@ -555,18 +487,16 @@
                 self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
                 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
                 self.addEventListener('fetch', e => {
-                    e.respondWith(
-                        fetch(e.request).catch(() => caches.match(e.request))
-                    );
+                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
                 });
             `;
             const blob = new Blob([swCode], { type: 'application/javascript' });
             const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW registration bypass offline'));
+            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW bypass offline'));
         });
     }
 
-    let currentModule = 'attendance'; // 'attendance' hoặc 'expense'
+    let currentModule = 'attendance';
 
     function switchAppModule(mod) {
         currentModule = mod;
@@ -591,7 +521,6 @@
         }
     }
 
-    // Tiện ích dùng chung
     function getTodayStr() { return new Date().toISOString().slice(0, 10); }
 
     function getCurrentWeekStr() {
@@ -643,15 +572,14 @@
         };
     }
 
-
     // =========================================================================
-    // CODE MODULE 1: CHẤM CÔNG
+    // MODULE 1: CHẤM CÔNG (ĐÃ CẬP NHẬT TÍNH TIỀN CÔNG VÀ LỌC THEO NHÂN VIÊN)
     // =========================================================================
     const ATT_DEFAULT_EMPLOYEES = [
-        { code: 'NV01', name: 'Nguyễn Văn A', dept: 'Kinh doanh' },
-        { code: 'NV02', name: 'Trần Thị B', dept: 'Kế toán' },
-        { code: 'NV03', name: 'Lê Văn C', dept: 'Kỹ thuật' },
-        { code: 'NV04', name: 'Phạm Thị D', dept: 'Nhân sự' }
+        { code: 'NV01', name: 'Nguyễn Văn A', dept: 'Kinh doanh', dailyRate: 300000 },
+        { code: 'NV02', name: 'Trần Thị B', dept: 'Kế toán', dailyRate: 350000 },
+        { code: 'NV03', name: 'Lê Văn C', dept: 'Kỹ thuật', dailyRate: 400000 },
+        { code: 'NV04', name: 'Phạm Thị D', dept: 'Nhân sự', dailyRate: 320000 }
     ];
 
     let attCurrentReportMode = 'week';
@@ -681,20 +609,16 @@
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: "saveAttendance",
-                    records: [record]
-                })
+                body: JSON.stringify({ action: "saveAttendance", records: [record] })
             });
-            console.log("Đã đẩy bản ghi lên Google Sheet");
         } catch (error) {
-            console.error("Lỗi gửi dữ liệu Google Sheet:", error);
+            console.error("Lỗi Google Sheet:", error);
         }
     }
 
     function calculateStatus(checkin, checkout, stdIn = '08:00') {
-        if (!checkin && !checkout) return { label: 'Vắng', badge: 'badge-kp' };
-        if (!checkin || !checkout) return { label: 'Thiếu giờ', badge: 'badge-other' };
+        if (!checkin && !checkout) return { label: 'Vắng', badge: 'badge-kp', hours: 0 };
+        if (!checkin || !checkout) return { label: 'Thiếu giờ', badge: 'badge-other', hours: 0 };
         
         const [h1, m1] = checkin.split(':').map(Number);
         const [h2, m2] = checkout.split(':').map(Number);
@@ -702,7 +626,7 @@
         if (diffMinutes < 0) diffMinutes += 24 * 60;
         
         let netHours = diffMinutes / 60;
-        if (netHours >= 4) netHours -= 1; // Nghỉ trưa 1 tiếng nếu làm trên 4h
+        if (netHours >= 4) netHours -= 1;
 
         const [stdH, stdM] = stdIn.split(':').map(Number);
         const isLate = (h1 * 60 + m1) > (stdH * 60 + stdM);
@@ -735,8 +659,13 @@
 
     function renderEmployeeSelect() {
         const select = document.getElementById('att-input-employee');
+        const filterSelect = document.getElementById('att-report-filter-employee');
         const employees = getEmployees();
+
         select.innerHTML = employees.map(e => `<option value="${e.code}">${e.code} - ${e.name}</option>`).join('');
+        
+        filterSelect.innerHTML = '<option value="ALL">-- Tất cả nhân viên --</option>' + 
+            employees.map(e => `<option value="${e.code}">${e.code} - ${e.name}</option>`).join('');
     }
 
     function renderEmployeeList(filterText = '') {
@@ -759,7 +688,7 @@
             <div class="list-item">
                 <div>
                     <div class="emp-name">${emp.name}</div>
-                    <div class="emp-sub">Mã: ${emp.code} ${emp.dept ? '• ' + emp.dept : ''}</div>
+                    <div class="emp-sub">Mã: ${emp.code} ${emp.dept ? '• ' + emp.dept : ''} | Giá công: ${formatMoney(emp.dailyRate || 0)}/ngày</div>
                 </div>
                 <div style="display:flex; gap:6px;">
                     <button class="btn btn-sm btn-outline" onclick="editEmployee(${idx})">Sửa</button>
@@ -803,6 +732,7 @@
     function generateAttReport() {
         const allRecords = getAttRecords();
         const employees = getEmployees();
+        const selectedEmpCode = document.getElementById('att-report-filter-employee').value;
         let filteredRecords = [];
         let infoText = "";
         let timeLabel = "";
@@ -830,44 +760,69 @@
             timeLabel = monthStr;
         }
 
+        if (selectedEmpCode !== 'ALL') {
+            filteredRecords = filteredRecords.filter(r => r.employee === selectedEmpCode);
+            const empObj = employees.find(e => e.code === selectedEmpCode);
+            infoText += ` | NV: ${empObj ? empObj.name : selectedEmpCode}`;
+        }
+
         document.getElementById('att-report-range-info').textContent = infoText;
 
         const summary = {};
-        employees.forEach(e => summary[e.code] = { name: e.name, days: 0, hours: 0, late: 0, missing: 0 });
+        const targetEmployees = (selectedEmpCode === 'ALL') 
+            ? employees 
+            : employees.filter(e => e.code === selectedEmpCode);
+
+        targetEmployees.forEach(e => {
+            summary[e.code] = { 
+                name: e.name, 
+                dailyRate: e.dailyRate || 0,
+                days: 0, 
+                hours: 0, 
+                late: 0, 
+                totalSalary: 0 
+            };
+        });
 
         filteredRecords.forEach(r => {
             if (!summary[r.employee]) return;
             const stat = calculateStatus(r.checkin, r.checkout);
             if (stat.hours) summary[r.employee].hours += stat.hours;
             
-            if (stat.label === 'Đủ công') summary[r.employee].days += 1;
-            else if (stat.label === 'Nửa công') summary[r.employee].days += 0.5;
-            else if (stat.label === 'Đi muộn') { summary[r.employee].days += 1; summary[r.employee].late += 1; }
-            else if (stat.label === 'Thiếu giờ' || stat.label === 'Vắng') { summary[r.employee].missing += 1; }
+            let daysAdded = 0;
+            if (stat.label === 'Đủ công' || stat.label === 'Đi muộn') daysAdded = 1;
+            else if (stat.label === 'Nửa công') daysAdded = 0.5;
+
+            summary[r.employee].days += daysAdded;
+            if (stat.label === 'Đi muộn') summary[r.employee].late += 1;
         });
 
-        let totalDays = 0, totalHours = 0, totalLate = 0;
-        Object.values(summary).forEach(s => {
-            totalDays += s.days;
-            totalHours += s.hours;
-            totalLate += s.late;
+        let totalDays = 0, totalHours = 0, totalLate = 0, grandTotalSalary = 0;
+        Object.keys(summary).forEach(code => {
+            const item = summary[code];
+            item.totalSalary = item.days * item.dailyRate;
+            totalDays += item.days;
+            totalHours += item.hours;
+            totalLate += item.late;
+            grandTotalSalary += item.totalSalary;
         });
 
         document.getElementById('att-report-summary').innerHTML = `
-            <div class="summary-item"><div class="number">${totalDays.toFixed(1)}</div><div class="label">Tổng công</div></div>
+            <div class="summary-item"><div class="number">${totalDays.toFixed(1)}</div><div class="label">Tổng số công</div></div>
             <div class="summary-item"><div class="number">${totalHours.toFixed(1)}h</div><div class="label">Tổng giờ làm</div></div>
             <div class="summary-item"><div class="number">${totalLate}</div><div class="label">Lượt đi muộn</div></div>
+            <div class="summary-item"><div class="number income">${formatMoney(grandTotalSalary)}</div><div class="label">Tổng tiền công</div></div>
         `;
 
-        let detailHtml = `<div class="table-wrap"><table><thead><tr><th>Nhân viên</th><th>Công</th><th>Giờ làm</th><th>Muộn</th></tr></thead><tbody>`;
-        employees.forEach(emp => {
-            const s = summary[emp.code];
+        let detailHtml = `<div class="table-wrap"><table><thead><tr><th>Nhân viên</th><th>Đơn giá</th><th>Số công</th><th>Tiền công</th></tr></thead><tbody>`;
+        targetEmployees.forEach(emp => {
+            const s = summary[emp.code] || { days: 0, dailyRate: emp.dailyRate || 0, totalSalary: 0 };
             detailHtml += `
                 <tr>
                     <td><strong>${emp.name}</strong><br><small style="color:var(--text-sub);">${emp.code}</small></td>
-                    <td>${s.days.toFixed(1)}</td>
-                    <td>${s.hours.toFixed(1)}h</td>
-                    <td>${s.late}</td>
+                    <td>${formatMoney(s.dailyRate)}</td>
+                    <td>${s.days.toFixed(1)} công</td>
+                    <td class="item-amount income">${formatMoney(s.totalSalary)}</td>
                 </tr>
             `;
         });
@@ -879,7 +834,7 @@
             timeLabel: timeLabel,
             infoText: infoText,
             summary: summary,
-            employees: employees
+            employees: targetEmployees
         };
     }
 
@@ -890,6 +845,7 @@
         document.getElementById('att-modal-emp-code').value = emp.code;
         document.getElementById('att-modal-emp-name').value = emp.name;
         document.getElementById('att-modal-emp-dept').value = emp.dept || '';
+        document.getElementById('att-modal-emp-rate').value = emp.dailyRate || '';
         document.getElementById('att-employee-modal').classList.add('active');
     }
 
@@ -919,9 +875,8 @@
         renderTodayAttList();
     }
 
-
     // =========================================================================
-    // CODE MODULE 2: CHI TIÊU
+    // MODULE 2: CHI TIÊU
     // =========================================================================
     const EXP_DEFAULT_CATEGORIES = [
         { id: 'c1', name: 'Ăn uống', type: 'expense' },
@@ -1143,7 +1098,7 @@
         document.getElementById('exp-report-summary').innerHTML = `
             <div class="summary-item"><div class="number income">${formatMoney(totalIncome)}</div><div class="label">Tổng thu</div></div>
             <div class="summary-item"><div class="number expense">${formatMoney(totalExpense)}</div><div class="label">Tổng chi</div></div>
-            <div class="summary-item"><div class="number balance">${formatMoney(balance)}</div><div class="label">Số dư</div></div>
+            <div class="summary-item" style="grid-column: span 2;"><div class="number balance">${formatMoney(balance)}</div><div class="label">Số dư còn lại</div></div>
         `;
 
         let incomeHtml = '';
@@ -1207,218 +1162,6 @@
         };
     }
 
-    // --- OCR RECEIPT SCANNING ENGINE ---
-    function parseReceiptText(text) {
-        const result = { amount: null, date: null, recipient: null, content: null, bank: null };
-        if (!text) return result;
-
-        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        const full = text.replace(/\s+/g, ' ');
-
-        const amountPatterns = [
-            /(?:số\s*tiền|so\s*tien|amount|giá\s*trị|gia\s*tri|số\s*tiền\s*gd|sotien)[:\s]*([\d.,]+)\s*(?:đ|vnd|vnđ|d)?/i,
-            /(?:chuyển\s*khoản|chuyen\s*khoan|thanh\s*toán|thanh\s*toan)[:\s]*([\d.,]+)\s*(?:đ|vnd)?/i,
-            /([\d]{1,3}(?:[.,]\d{3}){1,4})\s*(?:đ|vnd|vnđ|d)\b/i,
-            /(?:^|\s)([\d]{4,12})(?:\s*(?:đ|vnd|vnđ))?/i
-        ];
-
-        for (const re of amountPatterns) {
-            const m = full.match(re);
-            if (m) {
-                const original = m[1];
-                let raw = original;
-                if (original.includes('.') && !original.includes(',')) {
-                    raw = original.replace(/\./g, '');
-                } else if (original.includes(',') && !original.includes('.')) {
-                    raw = original.replace(/,/g, '');
-                } else {
-                    raw = original.replace(/[.,]/g, '');
-                }
-                const num = parseInt(raw, 10);
-                if (num >= 1000 && num < 1e12) {
-                    result.amount = num;
-                    break;
-                }
-            }
-        }
-
-        if (!result.amount) {
-            const numbers = full.match(/\b\d{1,3}(?:[.,]\d{3})+\b|\b\d{5,12}\b/g) || [];
-            let max = 0;
-            numbers.forEach(n => {
-                const cleaned = n.replace(/[.,]/g, '');
-                const v = parseInt(cleaned, 10);
-                if (v > max && v >= 1000 && v < 1e11) max = v;
-            });
-            if (max) result.amount = max;
-        }
-
-        const datePatterns = [
-            /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/,
-            /(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/,
-            /(?:ngày|ngay|date)[:\s]*(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/i
-        ];
-
-        for (const re of datePatterns) {
-            const m = full.match(re);
-            if (m) {
-                let d, mo, y;
-                if (m[0].match(/^\d{4}/)) {
-                    y = parseInt(m[1], 10);
-                    mo = parseInt(m[2], 10);
-                    d = parseInt(m[3], 10);
-                } else {
-                    d = parseInt(m[1], 10);
-                    mo = parseInt(m[2], 10);
-                    y = parseInt(m[3], 10);
-                    if (y < 100) y += 2000;
-                }
-                if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
-                    result.date = `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                    break;
-                }
-            }
-        }
-
-        const banks = [
-            { re: /vietcombank|vcb|ngân\s*hàng\s*ngoại\s*thương/i, name: 'Vietcombank' },
-            { re: /techcombank|tcb/i, name: 'Techcombank' },
-            { re: /\bmb\b|mbbank|quân\s*đội/i, name: 'MB Bank' },
-            { re: /bidv/i, name: 'BIDV' },
-            { re: /vpbank/i, name: 'VPBank' },
-            { re: /acb/i, name: 'ACB' },
-            { re: /tpbank/i, name: 'TPBank' },
-            { re: /vietinbank|ctg/i, name: 'VietinBank' },
-            { re: /agribank/i, name: 'Agribank' },
-            { re: /sacombank/i, name: 'Sacombank' },
-            { re: /shb/i, name: 'SHB' },
-            { re: /hdbank/i, name: 'HDBank' },
-            { re: /ocb/i, name: 'OCB' },
-            { re: /seabank/i, name: 'SeABank' }
-        ];
-        for (const b of banks) {
-            if (b.re.test(full)) {
-                result.bank = b.name;
-                break;
-            }
-        }
-
-        const recipientPatterns = [
-            /(?:đến|toi|tới|người\s*nhận|nguoi\s*nhan|beneficiary|to)[:\s]+([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ][A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ\s]{2,40})/i,
-            /(?:nội\s*dung|noi\s*dung|content|nội\s*dung\s*ck|ghi\s*chú)[:\s]+(.{3,60})/i,
-            /(?:chuyển\s*cho|chuyen\s*cho)[:\s]+([A-ZÀ-Ỹ][A-ZÀ-Ỹ\s]{2,40})/i
-        ];
-
-        for (const re of recipientPatterns) {
-            const m = full.match(re);
-            if (m && m[1]) {
-                let name = m[1].trim().replace(/\s+/g, ' ');
-                if (name.length > 50) name = name.slice(0, 50);
-                if (!/\d{5,}/.test(name)) {
-                    result.recipient = name;
-                    break;
-                }
-            }
-        }
-
-        if (!result.recipient) {
-            for (const line of lines) {
-                if (line.length >= 6 && line.length <= 45 &&
-                    /^[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ\s]+$/.test(line) &&
-                    !/VND|VCB|BANK|NGAN|HANG|CHUYEN|KHOAN|SO\s*TIEN/i.test(line)) {
-                    result.recipient = line.trim();
-                    break;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    async function analyzeExpImage(file) {
-        const statusEl = document.getElementById('exp-ocr-status');
-        const progressEl = document.getElementById('exp-ocr-progress');
-        const barEl = document.getElementById('exp-ocr-bar');
-        const rawEl = document.getElementById('exp-ocr-raw');
-        const btnAnalyze = document.getElementById('exp-btn-analyze');
-
-        statusEl.className = 'ocr-status loading';
-        statusEl.textContent = 'Đang nhận diện chữ (OCR)... vui lòng chờ';
-        progressEl.classList.add('show');
-        barEl.style.width = '5%';
-        rawEl.classList.remove('show');
-        btnAnalyze.disabled = true;
-
-        try {
-            if (typeof Tesseract === 'undefined') {
-                throw new Error("Tesseract chưa sẵn sàng offline. Hãy nhập dữ liệu thủ công.");
-            }
-            const worker = await Tesseract.createWorker('vie+eng', 1, {
-                logger: m => {
-                    if (m.status === 'recognizing text' && m.progress) {
-                        const pct = Math.round(m.progress * 100);
-                        barEl.style.width = pct + '%';
-                        statusEl.textContent = `Đang nhận diện... ${pct}%`;
-                    }
-                }
-            });
-
-            const { data: { text } } = await worker.recognize(file);
-            await worker.terminate();
-
-            barEl.style.width = '100%';
-            statusEl.className = 'ocr-status success';
-            statusEl.textContent = 'Đã phân tích xong! Kiểm tra & chỉnh sửa thông tin bên dưới.';
-
-            rawEl.textContent = text || '(Không nhận được chữ)';
-            rawEl.classList.add('show');
-
-            const parsed = parseReceiptText(text);
-
-            if (parsed.date) {
-                document.getElementById('exp-input-date').value = parsed.date;
-            }
-            if (parsed.amount) {
-                document.getElementById('exp-input-amount').value = parsed.amount;
-            }
-
-            let noteParts = [];
-            if (parsed.recipient) {
-                document.getElementById('exp-input-recipient').value = parsed.recipient;
-                noteParts.push(parsed.recipient);
-            }
-            if (parsed.bank) {
-                noteParts.push('(' + parsed.bank + ')');
-            }
-            if (noteParts.length) {
-                const currentNote = document.getElementById('exp-input-note').value;
-                if (!currentNote) {
-                    document.getElementById('exp-input-note').value = noteParts.join(' ');
-                }
-            }
-
-            setExpType('expense');
-            const cats = getExpCategories();
-            const ckCat = cats.find(c => c.name.toLowerCase().includes('chuyển khoản') || c.name.toLowerCase().includes('chuyen khoan'));
-            if (ckCat) {
-                document.getElementById('exp-input-category').value = ckCat.id;
-            }
-
-            showToast('Đã trích xuất thông tin từ ảnh');
-        } catch (err) {
-            console.error(err);
-            statusEl.className = 'ocr-status error';
-            statusEl.textContent = err.message || 'Lỗi nhận diện. Thử ảnh rõ hơn hoặc nhập tay.';
-            showToast('Không thể phân tích ảnh');
-        } finally {
-            btnAnalyze.disabled = false;
-            setTimeout(() => {
-                progressEl.classList.remove('show');
-                barEl.style.width = '0%';
-            }, 800);
-        }
-    }
-
     function editExpCategory(index) {
         const cat = getExpCategories()[index];
         document.getElementById('exp-modal-edit-index').value = index;
@@ -1454,12 +1197,64 @@
         renderTodayExpList();
     }
 
+    // OCR SCANNING
+    function parseReceiptText(text) {
+        const result = { amount: null, date: null, recipient: null };
+        if (!text) return result;
+        const full = text.replace(/\s+/g, ' ');
 
-    // =========================================================================
-    // KHỞI TẠO EVENT LISTENERS TOÀN BỘ ỨNG DỤNG
-    // =========================================================================
+        const amountPatterns = [
+            /(?:số\s*tiền|so\s*tien|amount|giá\s*trị|gia\s*tri)[:\s]*([\d.,]+)\s*(?:đ|vnd|vnđ)?/i,
+            /([\d]{1,3}(?:[.,]\d{3}){1,4})\s*(?:đ|vnd|vnđ)\b/i
+        ];
+        for (const re of amountPatterns) {
+            const m = full.match(re);
+            if (m) {
+                let raw = m[1].replace(/[.,]/g, '');
+                const num = parseInt(raw, 10);
+                if (num >= 1000 && num < 1e12) { result.amount = num; break; }
+            }
+        }
+        return result;
+    }
+
+    async function analyzeExpImage(file) {
+        const statusEl = document.getElementById('exp-ocr-status');
+        const progressEl = document.getElementById('exp-ocr-progress');
+        const barEl = document.getElementById('exp-ocr-bar');
+        const rawEl = document.getElementById('exp-ocr-raw');
+
+        statusEl.className = 'ocr-status loading';
+        statusEl.textContent = 'Đang nhận diện chữ (OCR)...';
+        progressEl.classList.add('show');
+        barEl.style.width = '10%';
+
+        try {
+            if (typeof Tesseract === 'undefined') throw new Error("Chưa tải thư viện Tesseract");
+            const worker = await Tesseract.createWorker('vie+eng');
+            const { data: { text } } = await worker.recognize(file);
+            await worker.terminate();
+
+            barEl.style.width = '100%';
+            statusEl.className = 'ocr-status success';
+            statusEl.textContent = 'Trích xuất hoàn tất!';
+            rawEl.textContent = text;
+            rawEl.classList.add('show');
+
+            const parsed = parseReceiptText(text);
+            if (parsed.amount) document.getElementById('exp-input-amount').value = parsed.amount;
+
+            showToast('Đã trích xuất xong');
+        } catch (err) {
+            statusEl.className = 'ocr-status error';
+            statusEl.textContent = 'Lỗi nhận diện ảnh';
+        } finally {
+            setTimeout(() => progressEl.classList.remove('show'), 800);
+        }
+    }
+
+    // INITIALIZATION & EVENT LISTENERS
     document.addEventListener('DOMContentLoaded', () => {
-        // Init dates
         document.getElementById('att-input-date').value = getTodayStr();
         document.getElementById('att-report-week').value = getCurrentWeekStr();
         document.getElementById('att-report-month').value = getTodayStr().slice(0, 7);
@@ -1471,37 +1266,30 @@
         renderAttAll();
         renderExpAll();
 
-        // General Floating Action Button
         document.getElementById('float-add').addEventListener('click', () => {
             if (currentModule === 'attendance') {
                 document.querySelector('#module-attendance [data-tab="att-tab-nhap"]').click();
-                document.getElementById('att-input-date').value = getTodayStr();
             } else {
                 document.querySelector('#module-expense [data-tab="exp-tab-nhap"]').click();
-                document.getElementById('exp-input-date').value = getTodayStr();
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // Tab Event Handlers (Attendance)
         document.querySelectorAll('#module-attendance .tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('#module-attendance .tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('#module-attendance .tab-content').forEach(c => c.classList.remove('active'));
                 this.classList.add('active');
-                const activeTab = document.getElementById(this.dataset.tab);
-                activeTab.classList.add('active');
-                if (this.dataset.tab === 'att-tab-baocao') {
-                    generateAttReport();
-                }
+                document.getElementById(this.dataset.tab).classList.add('active');
+                if (this.dataset.tab === 'att-tab-baocao') generateAttReport();
             });
         });
 
-        // Attendance Actions
         document.getElementById('att-search-employee').addEventListener('input', (e) => {
             renderEmployeeList(e.target.value.trim());
         });
         document.getElementById('att-input-date').addEventListener('change', renderTodayAttList);
+        document.getElementById('att-report-filter-employee').addEventListener('change', generateAttReport);
 
         document.getElementById('att-btn-save').addEventListener('click', async () => {
             const date = document.getElementById('att-input-date').value;
@@ -1511,18 +1299,15 @@
             const note = document.getElementById('att-input-note').value.trim();
 
             if (!date || !employee) return showToast('Vui lòng chọn ngày và nhân viên');
-            if (checkin && checkout && checkin >= checkout) return showToast('Giờ ra phải sau giờ vào');
 
             const record = { id: Date.now(), date, employee, checkin, checkout, note };
-            
             const records = getAttRecords();
             records.push(record);
             setAttRecords(records);
             renderTodayAttList();
-
             saveToGoogleSheet(record);
 
-            showToast('Đã lưu & đồng bộ Google Sheets!');
+            showToast('Đã lưu ca làm!');
             document.getElementById('att-input-checkin').value = '';
             document.getElementById('att-input-checkout').value = '';
             document.getElementById('att-input-note').value = '';
@@ -1535,31 +1320,30 @@
             const data = window._currentAttReport;
             if (!data) return showToast('Chưa có dữ liệu báo cáo');
 
-            let csvContent = "\uFEFFMã NV,Họ và Tên,Số công,Giờ làm,Đi muộn\n";
+            let csvContent = "\uFEFFMã NV,Họ và Tên,Số công,Giờ làm,Đơn giá công,Tổng tiền công\n";
             data.employees.forEach(emp => {
-                const s = data.summary[emp.code];
-                csvContent += `"${emp.code}","${emp.name}",${s.days.toFixed(1)},${s.hours.toFixed(1)},${s.late}\n`;
+                const s = data.summary[emp.code] || { days: 0, hours: 0, dailyRate: 0, totalSalary: 0 };
+                csvContent += `"${emp.code}","${emp.name}",${s.days.toFixed(1)},${s.hours.toFixed(1)},${s.dailyRate},${s.totalSalary}\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            const prefix = data.mode === 'week' ? 'Tuan' : 'Thang';
             link.setAttribute("href", url);
-            link.setAttribute("download", `BaoCao_ChamCong_${prefix}_${data.timeLabel}.csv`);
+            link.setAttribute("download", `BaoCao_CongLuong_${data.timeLabel}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast('Đã xuất file thành công!');
+            showToast('Xuất CSV thành công!');
         });
 
-        // Attendance Employee Modal
         document.getElementById('att-btn-add-employee').addEventListener('click', () => {
             document.getElementById('att-modal-edit-index').value = '';
             document.getElementById('att-modal-employee-title').textContent = 'Thêm nhân viên mới';
             document.getElementById('att-modal-emp-code').value = '';
             document.getElementById('att-modal-emp-name').value = '';
             document.getElementById('att-modal-emp-dept').value = '';
+            document.getElementById('att-modal-emp-rate').value = '';
             document.getElementById('att-employee-modal').classList.add('active');
         });
 
@@ -1571,26 +1355,26 @@
             const code = document.getElementById('att-modal-emp-code').value.trim();
             const name = document.getElementById('att-modal-emp-name').value.trim();
             const dept = document.getElementById('att-modal-emp-dept').value.trim();
+            const dailyRate = parseFloat(document.getElementById('att-modal-emp-rate').value) || 0;
             const editIndex = document.getElementById('att-modal-edit-index').value;
 
-            if (!code || !name) return showToast('Vui lòng điền đủ Mã và Tên nhân viên');
+            if (!code || !name) return showToast('Nhập đầy đủ Mã và Tên nhân viên');
 
             const employees = getEmployees();
             if (editIndex === '') {
                 if (employees.some(e => e.code === code)) return showToast('Mã nhân viên đã tồn tại');
-                employees.push({ code, name, dept });
+                employees.push({ code, name, dept, dailyRate });
             } else {
-                employees[parseInt(editIndex)] = { code, name, dept };
+                employees[parseInt(editIndex)] = { code, name, dept, dailyRate };
             }
 
             setEmployees(employees);
             renderAttAll();
             document.getElementById('att-employee-modal').classList.remove('active');
-            showToast('Đã lưu thông tin nhân viên');
+            showToast('Đã lưu nhân viên');
         });
 
-
-        // Tab Event Handlers (Expense)
+        // Expense Handlers
         document.querySelectorAll('#module-expense .tab-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 document.querySelectorAll('#module-expense .tab-btn').forEach(b => b.classList.remove('active'));
@@ -1601,10 +1385,7 @@
             });
         });
 
-        // Expense Actions
-        document.getElementById('exp-search-category').addEventListener('input', e => {
-            renderExpCategoryList(e.target.value.trim());
-        });
+        document.getElementById('exp-search-category').addEventListener('input', e => renderExpCategoryList(e.target.value.trim()));
         document.getElementById('exp-input-date').addEventListener('change', renderTodayExpList);
 
         document.getElementById('exp-btn-save').addEventListener('click', () => {
@@ -1615,25 +1396,15 @@
             const note = document.getElementById('exp-input-note').value.trim();
 
             if (!date || !category || isNaN(amount) || amount <= 0) {
-                return showToast('Vui lòng nhập ngày, danh mục và số tiền hợp lệ');
+                return showToast('Số tiền và danh mục không hợp lệ');
             }
 
-            const tx = {
-                id: Date.now(),
-                type: expCurrentType,
-                date,
-                category,
-                amount,
-                recipient,
-                note
-            };
-
             const txs = getTransactions();
-            txs.push(tx);
+            txs.push({ id: Date.now(), type: expCurrentType, date, category, amount, recipient, note });
             setTransactions(txs);
             renderTodayExpList();
 
-            showToast('Đã lưu giao dịch!');
+            showToast('Lưu giao dịch thành công!');
             document.getElementById('exp-input-amount').value = '';
             document.getElementById('exp-input-recipient').value = '';
             document.getElementById('exp-input-note').value = '';
@@ -1646,30 +1417,26 @@
             const data = window._currentExpReport;
             if (!data) return showToast('Chưa có dữ liệu báo cáo');
 
-            let csvContent = "\uFEFFNgày,Loại,Danh mục,Số tiền,Người nhận/Nội dung,Ghi chú\n";
+            let csvContent = "\uFEFFNgày,Loại,Danh mục,Số tiền,Nội dung\n";
             data.transactions.forEach(t => {
                 const cat = data.categories.find(c => c.id === t.category);
-                const catName = cat ? cat.name : '';
-                const typeText = t.type === 'income' ? 'Thu nhập' : 'Chi tiêu';
-                csvContent += `"${t.date}","${typeText}","${catName}",${t.amount},"${t.recipient || ''}","${t.note || ''}"\n`;
+                csvContent += `"${t.date}","${t.type === 'income' ? 'Thu' : 'Chi'}","${cat ? cat.name : ''}",${t.amount},"${t.recipient || ''}"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            const prefix = data.mode === 'week' ? 'Tuan' : 'Thang';
             link.setAttribute("href", url);
-            link.setAttribute("download", `BaoCao_ChiTieu_${prefix}_${data.timeLabel}.csv`);
+            link.setAttribute("download", `BaoCao_ChiTieu_${data.timeLabel}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast('Đã xuất file thành công!');
+            showToast('Xuất CSV thành công!');
         });
 
-        // Expense Category Modal
         document.getElementById('exp-btn-add-category').addEventListener('click', () => {
             document.getElementById('exp-modal-edit-index').value = '';
-            document.getElementById('exp-modal-category-title').textContent = 'Thêm danh mục mới';
+            document.getElementById('exp-modal-category-title').textContent = 'Thêm danh mục';
             document.getElementById('exp-modal-cat-name').value = '';
             document.getElementById('exp-modal-cat-type').value = 'expense';
             document.getElementById('exp-category-modal').classList.add('active');
@@ -1688,11 +1455,9 @@
 
             const categories = getExpCategories();
             if (editIndex === '') {
-                const newId = (type === 'income' ? 'i' : 'c') + Date.now();
-                categories.push({ id: newId, name, type });
+                categories.push({ id: (type === 'income' ? 'i' : 'c') + Date.now(), name, type });
             } else {
-                categories[parseInt(editIndex)].name = name;
-                categories[parseInt(editIndex)].type = type;
+                categories[parseInt(editIndex)] = { ...categories[parseInt(editIndex)], name, type };
             }
 
             setExpCategories(categories);
@@ -1701,62 +1466,36 @@
             showToast('Đã lưu danh mục');
         });
 
-        // OCR Scan Handlers for Mobile iOS
+        // OCR Photo Selectors
         const scanInput = document.getElementById('exp-scan-input');
-        const preview = document.getElementById('exp-scan-preview');
-        const scanArea = document.getElementById('exp-scan-area');
-        const placeholder = document.getElementById('exp-scan-placeholder');
-
-        function handleImageFile(file) {
-            if (!file || !file.type.startsWith('image/')) {
-                showToast('Vui lòng chọn file ảnh');
-                return;
-            }
-            expCurrentImageFile = file;
-            const url = URL.createObjectURL(file);
-            preview.src = url;
-            preview.classList.add('show');
-            placeholder.style.display = 'none';
-            scanArea.classList.add('has-image');
-            document.getElementById('exp-btn-analyze').style.display = 'inline-flex';
-            document.getElementById('exp-btn-clear-image').style.display = 'inline-flex';
-            document.getElementById('exp-ocr-status').textContent = '';
-            document.getElementById('exp-ocr-raw').classList.remove('show');
-        }
-
         document.getElementById('exp-btn-choose-image').addEventListener('click', () => {
             scanInput.removeAttribute('capture');
             scanInput.click();
         });
-
         document.getElementById('exp-btn-take-photo').addEventListener('click', () => {
             scanInput.setAttribute('capture', 'environment');
             scanInput.click();
         });
-
         scanInput.addEventListener('change', e => {
             if (e.target.files && e.target.files[0]) {
-                handleImageFile(e.target.files[0]);
+                expCurrentImageFile = e.target.files[0];
+                document.getElementById('exp-scan-preview').src = URL.createObjectURL(expCurrentImageFile);
+                document.getElementById('exp-scan-preview').classList.add('show');
+                document.getElementById('exp-scan-placeholder').style.display = 'none';
+                document.getElementById('exp-btn-analyze').style.display = 'inline-flex';
+                document.getElementById('exp-btn-clear-image').style.display = 'inline-flex';
             }
         });
-
         document.getElementById('exp-btn-clear-image').addEventListener('click', () => {
             expCurrentImageFile = null;
-            preview.src = '';
-            preview.classList.remove('show');
-            placeholder.style.display = 'block';
-            scanArea.classList.remove('has-image');
+            document.getElementById('exp-scan-preview').classList.remove('show');
+            document.getElementById('exp-scan-placeholder').style.display = 'block';
             document.getElementById('exp-btn-analyze').style.display = 'none';
             document.getElementById('exp-btn-clear-image').style.display = 'none';
-            document.getElementById('exp-ocr-status').textContent = '';
-            document.getElementById('exp-ocr-raw').classList.remove('show');
             scanInput.value = '';
         });
-
         document.getElementById('exp-btn-analyze').addEventListener('click', () => {
-            if (expCurrentImageFile) {
-                analyzeExpImage(expCurrentImageFile);
-            }
+            if (expCurrentImageFile) analyzeExpImage(expCurrentImageFile);
         });
     });
 </script>
